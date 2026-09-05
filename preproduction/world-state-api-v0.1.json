@@ -1,0 +1,22 @@
+{
+  "version": "0.1",
+  "purpose": "Executable world-state contract for manifestation validation",
+  "state_families": {
+    "thermal": ["add_heat", "remove_heat", "set_temperature_toward", "ignite", "extinguish", "change_phase"],
+    "food": ["preserve", "accelerate_spoilage", "cleanse_contamination", "cook", "ferment", "dry", "hydrate", "infuse_flavor"],
+    "integrity": ["damage", "repair", "reinforce", "weaken", "join", "sever", "redistribute_stress"],
+    "growth": ["accelerate_growth", "suppress_growth", "heal_growth_damage", "induce_rooting", "induce_fruiting", "enter_dormancy"],
+    "soil_water": ["add_water", "remove_water", "redirect_flow", "increase_pressure", "decrease_pressure", "filter", "enrich_soil", "deplete_soil"],
+    "vitality": ["deal_wound", "restore_vitality", "close_wound", "increase_bleeding", "reduce_bleeding", "reduce_pain", "add_toxin", "remove_toxin", "modify_recovery"],
+    "conditions": ["add_condition", "remove_condition", "suppress_condition", "extend_condition", "shorten_condition"],
+    "perception_tracks": ["reveal", "conceal", "strengthen_track", "erase_track", "detect", "identify", "mark", "share_detection"],
+    "sound_resonance": ["emit_sound", "amplify", "dampen", "tune", "retune", "store_echo", "replay_echo"],
+    "emotion_social": ["influence_emotion", "focus_attention", "disperse_attention", "modify_morale", "apply_social_pressure"],
+    "traversal_space": ["move", "push", "pull", "increase_traction", "reduce_traction", "create_route", "block_route", "fold_distance", "store_object_space"],
+    "resources_materials": ["consume", "produce", "transfer", "separate", "combine", "purify", "contaminate", "reshape"],
+    "craft_process": ["advance_process", "increase_precision", "reduce_waste", "increase_quality", "stabilize_process", "complete_step"],
+    "magic_system": ["spend_mana", "restore_mana", "suppress_magic", "amplify_magic", "detect_magic", "bind_effect", "dispel_effect"]
+  },
+  "mutation_required": ["state_family", "operation", "target", "magnitude"],
+  "generation_order": ["semantic_intersection", "candidate_mechanic", "world_state_mutation", "validate", "balance_and_kit_scoring", "name_and_prose"]
+}
