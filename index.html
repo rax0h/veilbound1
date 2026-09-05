@@ -3051,8 +3051,6 @@ itemId: it.id, label: it.label, count: cnt, color: it.color,
 enabled: isPlayerTurn && cnt > 0,
 });
 });
-// Keep the existing Item action visible even when inventory is empty.
-if (!shown.length) this.itemButtons.push({rect:{x:4,y:itemY,w:iw-4,h:36},itemId:null,label:'Item',count:0,color:'#7d9b72',enabled:false});
 this.fleeButton = {
 rect: {x: 4+3*iw, y: itemY, w: iw-4, h: 36},
 enabled: isPlayerTurn,
@@ -4892,11 +4890,10 @@ CLS_OCCULTIST:[".........1111111................",".......11333333311...........
 const CLS_PAL = {vanguard:["transparent","#08080f","#2a3644","#3d4d5e","#556878","#748a9c","#9db0c2","#c8d6e4","#1e2f5c","#2f4a8c","#4668b8","#d4a850","#f5d878","#e8b088","#c88868","#6a4030"], skirmisher:["transparent","#08080f","#14261c","#1e3a2a","#2d5540","#3f7052","#548c64","#6aa87a","#d8c8a4","#e8b088","#c89868","#3a2a1a","#8a2028","#b83440","#e05868","#c0c8d0"], invoker:["transparent","#08080f","#1e1440","#2d2058","#3f2f78","#544098","#6a55b8","#8470d4","#e8b088","#c89868","#a888e0","#c8a8f8","#e8d0ff","#ffe8ff","#d4a850","#4a3a1a"], warden:["transparent","#08080f","#1e2a12","#2d4020","#3f5a2d","#54763d","#6a924d","#82ae5d","#e8b088","#c89868","#8a6a3a","#a87f4a","#c89858","#a8c860","#5a4a2a","#3a2f1a"], occultist:["transparent","#08080f","#150a14","#241020","#361a2c","#4d2838","#6a3848","#8a5060","#c09888","#a87068","#8a1420","#b82838","#e04858","#ff6070","#3a1a2a","#d0b0a8"]};
 const CLASSES = {
 vanguard:{name:"Vanguard",tag:"Frontline Bulwark",col:"#5a6a9a",attrs:{power:5,speed:3,spirit:2,recovery:4},desc:"A wall of steel. Vanguards absorb punishment and answer it with crushing blows. Essences of Might, Iron, and Shield come naturally.",perk:"+20% max HP \u00b7 starts with heavier armor affinity",bias:["might", "iron", "shield", "bear", "armour"]},
+skirmisher:{name:"Skirmisher",tag:"Swift Duelist",col:"#54a068",attrs:{power:4,speed:6,spirit:2,recovery:2},desc:"Blade and shadow. Skirmishers strike first and vanish before the counter lands. Swift, Fox, and Sword essences favor them.",perk:"Always acts first \u00b7 +15% dodge",bias:["swift", "fox", "sword", "wind", "knife"]},
+invoker:{name:"Invoker",tag:"Essence Caster",col:"#7a5aaa",attrs:{power:2,speed:3,spirit:6,recovery:3},desc:"Raw arcane force. Invokers rain elemental ruin and afflictions from range. Fire, Magic, and Lightning answer their call.",perk:"+50% max Mana \u00b7 abilities scale with Spirit",bias:["fire", "magic", "lightning", "star", "light"]},
 warden:{name:"Warden",tag:"Life-Touched Sustainer",col:"#6a924d",attrs:{power:3,speed:3,spirit:4,recovery:6},desc:"Rooted and enduring. Wardens outlast any foe, mending wounds and drawing strength from the living world. Growth, Life, and Water flow through them.",perk:"Regenerates HP each turn \u00b7 strong recovery scaling",bias:["growth", "life", "water", "plant", "tree"]},
-occultist:{name:"Acolyte",tag:"Dark Ritualist",col:"#b82838",attrs:{power:3,speed:3,spirit:5,recovery:2},desc:"Power at a price. Acolytes drain life, weave curses, and trade safety for devastating force. Dark, Blood, and Sin are their tools.",perk:"Life-drain on abilities \u00b7 +25% ability damage, -15% HP",bias:["dark", "blood", "death", "sin", "venom"]},
-skirmisher:{name:"Rogue",tag:"Swift Duelist",col:"#54a068",attrs:{power:4,speed:6,spirit:2,recovery:2},desc:"Blade and shadow. Rogues strike first and vanish before the counter lands. Swift, Fox, and Sword essences favor them.",perk:"Always acts first \u00b7 +15% dodge",bias:["swift", "fox", "sword", "wind", "knife"]},
-invoker:{name:"Arcanist",tag:"Essence Caster",col:"#7a5aaa",attrs:{power:2,speed:3,spirit:6,recovery:3},desc:"Raw arcane force. Arcanists rain elemental ruin and afflictions from range. Fire, Magic, and Lightning answer their call.",perk:"+50% max Mana \u00b7 abilities scale with Spirit",bias:["fire", "magic", "lightning", "star", "light"]},
-shaper:{name:"Shaper",tag:"Verdant Transmuter",col:"#77a84f",attrs:{power:3,speed:3,spirit:4,recovery:6},desc:"Bend and grow. Shapers channel the living world through patient recovery and transformative essence craft.",perk:"Recovery-focused affinity",bias:["growth", "life", "water", "plant", "tree"]}
+occultist:{name:"Occultist",tag:"Dark Ritualist",col:"#b82838",attrs:{power:3,speed:3,spirit:5,recovery:2},desc:"Power at a price. Occultists drain life, weave curses, and trade safety for devastating force. Dark, Blood, and Sin are their tools.",perk:"Life-drain on abilities \u00b7 +25% ability damage, -15% HP",bias:["dark", "blood", "death", "sin", "venom"]}
 };
 const ALIGNMENTS = {
 valiant:{name:"Valiant",col:"#d4a850",desc:"Honor and courage. Valiant heroes gain bonus effects from protective and direct abilities.",tint:"protective/direct effects favored"},
@@ -5594,8 +5591,7 @@ if (!ctx) return;
 ctx.imageSmoothingEnabled = true;
 ctx.clearRect(0,0,canvas.width,canvas.height);
 if (callVeilboundVFX('drawClassPortrait',ctx,clsKey,0,0,canvas.width,canvas.height)) return;
-const fallbackKey = clsKey === 'shaper' ? 'warden' : clsKey;
-const rows = CLS_SPR[fallbackKey], pal = CLS_PAL[fallbackKey];
+const rows = CLS_SPR[clsKey], pal = CLS_PAL[clsKey];
 if (!rows || !pal) return;
 for (let y=0; y<rows.length; y++){
 const row = rows[y];
