@@ -24,7 +24,7 @@
   class VisualEffectsSystem {
     constructor(){
       this.particles=new ParticleField();this.reduceMotion=!!global.matchMedia?.('(prefers-reduced-motion: reduce)').matches;this._groundCache=new Map();
-      this.atlas=null;this.assetsReady=false;this.assetsFailed=false;this._preloadWildwood();
+      this.atlas=null;this.productionAtlas=null;this.assetsReady=false;this.productionReady=false;this.assetsFailed=false;this._regionCache=new Map();this._preloadWildwood();this._preloadProduction();
     }
     _preloadWildwood(){
       const metadata=global.WildwoodAtlas;
@@ -34,9 +34,18 @@
         this.atlas=image;this.assetsReady=true;
       };image.onerror=()=>{this.assetsFailed=true;};image.src=metadata.source;
     }
+    _preloadProduction(){const m=global.VeilboundProductionAtlas;if(typeof global.Image!=='function'||!m?.source||!m?.regions)return;const image=new global.Image();image.decoding='async';image.onload=()=>{if(image.naturalWidth!==m.width||image.naturalHeight!==m.height)return;this.productionAtlas=image;this.productionReady=true;global.dispatchEvent?.(new Event('veilbound-production-ready'));};image.onerror=()=>{};image.src=m.source;}
     isWildwood(zone){return zone==='wildwood_start'||zone==='wildwood_deep';}
     region(name){return global.WildwoodAtlas?.regions?.[name];}
     drawRegion(ctx,name,x,y,w,h){const r=this.region(name);if(!this.assetsReady||!this.atlas||!r)return false;ctx.drawImage(this.atlas,r[0],r[1],r[2],r[3],x,y,w,h);return true;}
+    productionRegion(name){return global.VeilboundProductionAtlas?.regions?.[name];}
+    _cachedCrop(atlas,r,key,matte){if(this._regionCache.has(key))return this._regionCache.get(key);const cv=global.document?.createElement?.('canvas');if(!cv)return null;cv.width=r[2];cv.height=r[3];const c=cv.getContext('2d',{willReadFrequently:!!matte});if(!c)return null;c.drawImage(atlas,r[0],r[1],r[2],r[3],0,0,r[2],r[3]);if(matte){const d=c.getImageData(0,0,cv.width,cv.height),p=d.data;for(let i=0;i<p.length;i+=4){const l=p[i]*.2126+p[i+1]*.7152+p[i+2]*.0722;if(l<13)p[i+3]=0;else if(l<27)p[i+3]=Math.round(p[i+3]*(l-13)/14);}c.putImageData(d,0,0);}this._regionCache.set(key,cv);return cv;}
+    drawProductionRegion(ctx,name,x,y,w,h,matte=false){const r=this.productionRegion(name);if(!this.productionReady||!this.productionAtlas||!r)return false;try{const crop=this._cachedCrop(this.productionAtlas,r,`production:${name}:${matte}`,matte);if(!crop)return false;ctx.drawImage(crop,x,y,w,h);return true;}catch(e){return false;}}
+    drawClassPortrait(ctx,cls,x,y,w,h){return this.drawProductionRegion(ctx,`class-${cls}`,x,y,w,h);}
+    drawNatureCard(ctx,nature,x,y,w,h){return this.drawProductionRegion(ctx,`nature-${nature}`,x,y,w,h);}
+    enemyRegionFor(id){const map={shadow_wisp:'shadow-wisp',dire_wolf:'dire-wolf',forest_bear:'forest-bear',rootling:'rootling',bramble_hound:'bramble-hound',spite_sprite:'spite-sprite',moss_crawler:'moss-crawler',hollow_stag:'hollow-stag',bloodthorn_sprout:'rootling',ember_crawler:'moss-crawler'};return map[id]&&`enemy-${map[id]}`;}
+    drawBattleActor(ctx,zone,kind,id,cx,groundY,maxH){if(!this.isWildwood(zone)||!this.productionReady)return false;const name=kind==='player'?`class-${id||'vanguard'}`:this.enemyRegionFor(id),r=name&&this.productionRegion(name);if(!r)return false;const h=maxH,w=h*r[2]/r[3],x=cx-w/2,y=groundY-h;ctx.save();ctx.imageSmoothingEnabled=true;ctx.globalAlpha=.34;ctx.fillStyle='#000';ctx.beginPath();ctx.ellipse(cx,groundY-2,w*.32,5,0,0,Math.PI*2);ctx.fill();ctx.globalAlpha=1;const ok=this.drawProductionRegion(ctx,name,x,y,w,h,true);ctx.restore();return ok?{sx:x,sy:y,w,h}:false;}
+
     setReducedMotion(value){this.reduceMotion=!!value;}
     profile(zone){return PROFILES[zone]||PROFILES.wildwood_start;}
     drawWildwoodGround(ctx,w,h,zone,map,camX,camY,tileSize,frame){
@@ -64,12 +73,14 @@
       ctx.save();ctx.imageSmoothingEnabled=true;
       [...map.objects].sort((a,b)=>a.ty-b.ty).forEach(o=>{const name=mapping(o.type),region=name&&this.region(name);if(!region)return;const seed=hash(o.tx,o.ty),scale=(name.startsWith('tree')?1.02:name==='ruin'?1.08:.62)*(0.91+seed*.18);const dw=region[2]*scale,dh=region[3]*scale,x=o.tx*tileSize-camX+tileSize/2-dw/2,y=(o.ty+1)*tileSize-camY-dh;
         if(x>ctx.canvas.width||x+dw<0||y>ctx.canvas.height||y+dh<55)return;
-        ctx.globalAlpha=.34;ctx.fillStyle='#020503';ctx.beginPath();ctx.ellipse(x+dw*.51,y+dh*.92,dw*.34,Math.max(3,dh*.055),-.12,0,Math.PI*2);ctx.fill();ctx.globalAlpha=zone==='wildwood_deep'?.88:1;this.drawRegion(ctx,name,x,y,dw,dh);
+        ctx.globalAlpha=.34;ctx.fillStyle='#020503';ctx.beginPath();ctx.ellipse(x+dw*.51,y+dh*.92,dw*.34,Math.max(3,dh*.055),-.12,0,Math.PI*2);ctx.fill();ctx.globalAlpha=zone==='wildwood_deep'?.88:1;const crop=this._cachedCrop(this.atlas,region,`wildwood:${name}:matte`,true);if(crop)ctx.drawImage(crop,x,y,dw,dh);
       });ctx.restore();return true;
     }
     drawWildwoodActor(ctx,zone,kind,facing,worldX,worldY,camX,camY,tileSize){
       if(!this.isWildwood(zone)||!this.assetsReady)return false;
-      const name=kind==='player'?`player-${facing||'down'}`:kind==='npc'?'npc':kind==='bear'?'bear':'wolf',region=this.region(name);if(!region)return false;
+      if(kind!=='player'&&kind!=='npc'){const enemyName=this.enemyRegionFor(kind),enemyRegion=enemyName&&this.productionRegion(enemyName);if(!enemyRegion)return false;const h=70,w=h*enemyRegion[2]/enemyRegion[3],x=worldX*tileSize-camX+tileSize/2-w/2,y=(worldY+1)*tileSize-camY-h;ctx.save();ctx.imageSmoothingEnabled=true;const ok=this.drawProductionRegion(ctx,enemyName,x,y,w,h,true);ctx.restore();return ok;}
+      const heroFacing={down:'hero-down',up:'hero-up',left:'hero-left',right:'hero-right'};if(kind==='player'&&this.productionReady){const heroName=heroFacing[facing]||'hero-down',heroRegion=this.productionRegion(heroName),h=72,w=h*heroRegion[2]/heroRegion[3],x=worldX*tileSize-camX+tileSize/2-w/2,y=(worldY+1)*tileSize-camY-h;ctx.save();ctx.imageSmoothingEnabled=true;const ok=this.drawProductionRegion(ctx,heroName,x,y,w,h,true);ctx.restore();return ok;}
+      const name=kind==='player'?`player-${facing||'down'}`:'npc',region=this.region(name);if(!region)return false;
       const h=kind==='player'?72:kind==='npc'?76:68,w=h*region[2]/region[3],x=worldX*tileSize-camX+tileSize/2-w/2,y=(worldY+1)*tileSize-camY-h;
       ctx.save();ctx.imageSmoothingEnabled=true;ctx.globalAlpha=.32;ctx.fillStyle='#000';ctx.beginPath();ctx.ellipse(x+w/2,y+h*.94,w*.34,4,0,0,Math.PI*2);ctx.fill();ctx.globalAlpha=1;this.drawRegion(ctx,name,x,y,w,h);ctx.restore();return true;
     }

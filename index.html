@@ -10,9 +10,9 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Veilbound">
 <meta name="theme-color" content="#0a0612">
-<meta name="veilbound-build" content="VB_WILDWOOD_HD_20260905">
+<meta name="veilbound-build" content="VB_PRODUCTION_HD_20260905">
 <title>Essence Awakening: Veilbound v65.2 Standalone</title>
-<link rel="stylesheet" href="styles/veilbound.css?v=VB_WILDWOOD_HD_20260905">
+<link rel="stylesheet" href="styles/veilbound.css?v=VB_PRODUCTION_HD_20260905">
 
 </head>
 <body class="vb-preworld">
@@ -23,7 +23,7 @@
     <!-- Title screen -->
     <div id="title-screen">
       <picture class="t-artwork" aria-hidden="true">
-        <img src="assets/ui/IMG_7233.png?v=VB_WILDWOOD_HD_20260905" alt="" fetchpriority="high">
+        <img src="assets/ui/IMG_7233.png?v=VB_PRODUCTION_HD_20260905" alt="" fetchpriority="high">
       </picture>
       <div class="t-atmosphere" aria-hidden="true"></div>
       <div class="t-particles" id="t-particles"></div>
@@ -51,7 +51,7 @@
           <div class="cc-title">Choose Your Path</div>
           <div class="cc-sub">Your class shapes your strengths and the essences that call to you.</div>
           <div class="cc-portrait-wrap">
-            <canvas id="cc-portrait" width="192" height="192"></canvas>
+            <canvas id="cc-portrait" width="108" height="199"></canvas>
             <div class="cc-portrait-glow" id="cc-glow"></div>
           </div>
           <div class="cc-cname" id="cc-cname">Vanguard</div>
@@ -95,8 +95,8 @@
 
   </div>
 </div>
-<script src="scripts/wildwood-atlas.js?v=VB_WILDWOOD_HD_20260905"></script>
-<script src="scripts/visual-effects.js?v=VB_WILDWOOD_HD_20260905"></script>
+<script src="scripts/wildwood-atlas.js?v=VB_PRODUCTION_HD_20260905"></script>
+<script src="scripts/visual-effects.js?v=VB_PRODUCTION_HD_20260905"></script>
 <script>
 // Standalone-safe storage wrapper: protects local-file/private browsing runtimes.
 const VBStorage = {
@@ -111,6 +111,7 @@ function callVeilboundVFX(method, ...args) {
   try { return effect.apply(window.VeilboundVFX, args) !== false; }
   catch (error) { console.warn(`VeilboundVFX.${method} skipped:`, error); return false; }
 }
+window.addEventListener('veilbound-production-ready',()=>{if(window.G?._ccClass){G._ccBuildClassPickers();G._ccRenderClass();if(!document.getElementById('cc-step-align')?.classList.contains('hidden'))G._ccBuildAligns();}});
 const E={
 dark:{name:"Dark Essence",r:"Common",attr:"speed",col:"#7b2fff",em:"🌑",flav:"A cold crystal pulsing with absorbed light. It whispers of places between places.",
 ab:[{id:"shadow_step",name:"Shadow Step",type:"buff",cost:15,desc:"Untargetable 1 turn.",ef:[{t:"bf",s:"untargetable",d:1}]},
@@ -2454,8 +2455,7 @@ for (const ent of this.entities) {
 if (!ent.alive) continue;
 const sprName = ent.getSprName(af);
 const palName = ent.getPalName();
-const hdEnemy = ent.id && ent.id.includes('bear') ? 'bear' : 'wolf';
-if (!callVeilboundVFX('drawWildwoodActor', r.ctx, this.currentZone, hdEnemy, 'down', ent.tileX, ent.tileY, r.camX, r.camY, TILE_PX)) r.drawSprite(sprName, palName, ent.tileX, ent.tileY);
+if (!callVeilboundVFX('drawWildwoodActor', r.ctx, this.currentZone, ent.id, 'down', ent.tileX, ent.tileY, r.camX, r.camY, TILE_PX)) r.drawSprite(sprName, palName, ent.tileX, ent.tileY);
 }
 const zdNow = ZONE_DATA[this.currentZone];
 if (zdNow && zdNow.transitions) {
@@ -2746,7 +2746,8 @@ const MSCALE = boss ? 4 : 3;                       // 48px × 3 = 144px tall
 const mCx = W * 0.68;
 const bob = Math.sin(this.frame * 0.05) * 3;       // idle breathing
 const mGround = H * 0.34 + bob + this.monsterAnim;
-const r = _bigSpr('bt_' + this.monsterId, mCx, mGround, MSCALE, false);
+const hdMonster = callVeilboundVFX('drawBattleActor',ctx,zone,'enemy',this.monsterId,mCx,mGround,boss?190:162);
+const r = hdMonster ? {w:boss?114:96} : _bigSpr('bt_' + this.monsterId, mCx, mGround, MSCALE, false);
 if (r) {
 const barW = Math.min(150, r.w);
 this._drawBar(mCx - barW/2, mGround + 8, barW, 9,
@@ -2768,7 +2769,7 @@ const pCx = W * 0.26 + this.playerAnim;
 const pbob = Math.sin(this.frame * 0.05 + 1.7) * 2;
 const pGround = H * 0.40 + pbob;
 const layers = playerLayers(this.game);
-layers.forEach(L => _bigSpr(L, pCx, pGround, PSCALE, false));
+if (!callVeilboundVFX('drawBattleActor',ctx,zone,'player',this.game.cls,pCx,pGround,174)) layers.forEach(L => _bigSpr(L, pCx, pGround, PSCALE, false));
 this._drawStatusChips(this.pSt, pCx - 40, pGround + 8);
 }
 this._drawImpacts(ctx);
@@ -2786,22 +2787,22 @@ const logY  = barsY - logH - 6;
 const bannerY = logY - 24;              // was 16
 const bText = bannerText, bCol = bannerCol;
 const bg2 = ctx.createLinearGradient(0, bannerY, 0, bannerY+22);
-bg2.addColorStop(0,'rgba(16,10,28,0.96)');
-bg2.addColorStop(1,'rgba(10,6,18,0.92)');
+bg2.addColorStop(0,'rgba(12,11,9,0.97)');
+bg2.addColorStop(1,'rgba(3,4,3,0.96)');
 ctx.fillStyle = bg2;
 ctx.fillRect(0, bannerY, W, 22);
 ctx.fillStyle = bCol;
 ctx.fillRect(0, bannerY, W, 2);                        // top accent
 ctx.fillRect(0, bannerY+20, W, 2);                     // bottom accent
-ctx.font = 'bold 14px monospace';                      // was 10px
+ctx.font = '600 13px Georgia, serif';
 ctx.textAlign = 'center';
 ctx.shadowColor = bCol; ctx.shadowBlur = 8;
 ctx.fillText(bText, W/2, bannerY + 16);
 ctx.shadowBlur = 0;
 ctx.textAlign = 'left';
-ctx.fillStyle = 'rgba(10,6,18,0.92)';
+ctx.fillStyle = 'rgba(4,5,4,0.94)';
 ctx.fillRect(0, logY, W, logH);
-ctx.strokeStyle = 'rgba(139,111,196,0.55)';
+ctx.strokeStyle = 'rgba(205,170,98,0.55)';
 ctx.lineWidth = 1;
 ctx.strokeRect(0.5, logY+0.5, W-1, logH-1);
 const recent = this.logLines.slice(-3);
@@ -2822,7 +2823,7 @@ ctx.fillStyle = hc;
 ctx.fillRect(8, barsY, Math.floor(bw*hpR2), 20);
 ctx.fillStyle = 'rgba(255,255,255,0.18)';
 ctx.fillRect(8, barsY, Math.floor(bw*hpR2), 7);        // gloss
-ctx.strokeStyle = 'rgba(200,180,255,0.45)';
+ctx.strokeStyle = 'rgba(218,181,105,0.55)';
 ctx.strokeRect(8.5, barsY+0.5, bw-1, 19);
 ctx.fillStyle = '#fff';
 ctx.font = 'bold 13px monospace';                      // was 9px
@@ -2837,7 +2838,7 @@ ctx.fillStyle = '#4aa8e8';
 ctx.fillRect(8, barsY+24, Math.floor(bw*mpR2), 18);
 ctx.fillStyle = 'rgba(255,255,255,0.18)';
 ctx.fillRect(8, barsY+24, Math.floor(bw*mpR2), 6);
-ctx.strokeStyle = 'rgba(200,180,255,0.45)';
+ctx.strokeStyle = 'rgba(218,181,105,0.55)';
 ctx.strokeRect(8.5, barsY+24.5, bw-1, 17);
 ctx.fillStyle = '#fff';
 ctx.font = 'bold 12px monospace';
@@ -5585,8 +5586,9 @@ document.getElementById('cc-step-align').classList.add('hidden');
 _ccDrawPortrait(canvas, clsKey, scale) {
 const ctx = canvas.getContext('2d');
 if (!ctx) return;
-ctx.imageSmoothingEnabled = false;
+ctx.imageSmoothingEnabled = true;
 ctx.clearRect(0,0,canvas.width,canvas.height);
+if (callVeilboundVFX('drawClassPortrait',ctx,clsKey,0,0,canvas.width,canvas.height)) return;
 const rows = CLS_SPR[clsKey], pal = CLS_PAL[clsKey];
 if (!rows || !pal) return;
 for (let y=0; y<rows.length; y++){
@@ -5612,11 +5614,11 @@ const btn = document.createElement('button');
 btn.className = 'cc-cbtn' + (k===this._ccClass?' active':'');
 btn.style.setProperty('--cc-ac', CLASSES[k].col);
 const cv = document.createElement('canvas');
-cv.width = 44; cv.height = 44;
+cv.width = 108; cv.height = 199;
 btn.appendChild(cv);
 btn.onclick = () => { this._ccClass = k; this._ccRenderClass(); };
 wrap.appendChild(btn);
-this._ccDrawPortrait(cv, k, 44/32);
+this._ccDrawPortrait(cv, k, 108/32);
 });
 },
 _ccRenderClass() {
@@ -5655,11 +5657,8 @@ this._ccRenderClass();
 _ccBuildAligns() {
 const wrap = document.getElementById('cc-aligns');
 if (!wrap) return;
-wrap.innerHTML = Object.entries(ALIGNMENTS).map(([k,a]) => `
-<div class="cc-align${k===this._ccAlign?' active':''}" style="--cc-aa:${a.col};border-color:${k===this._ccAlign?a.col:'#241340'}" onclick="G.ccPickAlign('${k}')">
-<div class="cc-align-nm" style="color:${a.col}">${a.name}</div>
-<div class="cc-align-tint">${a.tint}</div>
-</div>`).join('');
+wrap.innerHTML = '';
+Object.entries(ALIGNMENTS).forEach(([k,a])=>{const card=document.createElement('button');card.type='button';card.className=`cc-align${k===this._ccAlign?' active':''}`;card.style.setProperty('--cc-aa',a.col);card.onclick=()=>this.ccPickAlign(k);const cv=document.createElement('canvas');cv.width=110;cv.height=298;card.appendChild(cv);const copy=document.createElement('span');copy.className='cc-align-copy';copy.innerHTML=`<span class="cc-align-nm">${a.name}</span><span class="cc-align-tint">${a.tint}</span>`;card.appendChild(copy);wrap.appendChild(card);callVeilboundVFX('drawNatureCard',cv.getContext('2d'),k,0,0,110,298);});
 document.getElementById('cc-align-desc').textContent = ALIGNMENTS[this._ccAlign].desc;
 },
 ccPickAlign(k) {
