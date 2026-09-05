@@ -50,11 +50,38 @@
     hdRegion(name){return global.VeilboundHDAtlas?.regions?.[name];}
     drawHDRegion(ctx,name,x,y,w,h,matte=false){const r=this.hdRegion(name);if(!this.hdReady||!this.hdAtlas||!r)return false;try{const crop=this._cachedCrop(this.hdAtlas,r,`hd:${name}:${matte}`,matte);if(!crop)return false;ctx.drawImage(crop,x,y,w,h);return true;}catch(e){return false;}}
     guideRegion(name){return global.VeilboundActorGuideAtlas?.regions?.[name];}
-    _guideSubject(name){const key=`guide:${name}:subject`;if(this._regionCache.has(key))return this._regionCache.get(key);const r=this.guideRegion(name),cv=global.document?.createElement?.('canvas');if(!this.actorGuideReady||!this.actorGuideAtlas||!r||!cv)return null;const paths={
-      'exploration-player':[[75,8],[103,18],[113,51],[130,72],[133,117],[146,154],[137,205],[151,268],[121,301],[94,265],[77,301],[50,286],[53,238],[35,207],[43,157],[34,119],[51,76],[54,31]],
-      'battle-player':[[87,4],[112,17],[119,45],[143,71],[134,112],[154,153],[135,186],[126,222],[151,270],[125,288],[93,266],[70,289],[43,278],[57,226],[31,207],[49,166],[24,139],[51,109],[44,72],[68,45]],
-      'swiftfang-fox':[[0,85],[39,60],[83,42],[132,36],[185,47],[238,27],[282,5],[273,48],[308,60],[340,82],[376,112],[388,143],[367,163],[334,170],[307,194],[278,204],[246,197],[222,230],[193,235],[174,219],[146,231],[109,228],[83,253],[53,254],[31,232],[9,219]]
-    };try{cv.width=r[2];cv.height=r[3];const c=cv.getContext('2d');c.save();c.beginPath();paths[name].forEach((p,i)=>i?c.lineTo(p[0],p[1]):c.moveTo(p[0],p[1]));c.closePath();c.clip();c.drawImage(this.actorGuideAtlas,r[0],r[1],r[2],r[3],0,0,r[2],r[3]);c.restore();c.globalCompositeOperation='destination-in';c.filter='blur(1.2px)';c.drawImage(cv,0,0);c.filter='none';c.globalCompositeOperation='source-over';this._regionCache.set(key,cv);return cv;}catch(e){return null;}}
+    _guideSubject(name){
+      const key=`guide:${name}:subject-v2`;
+      if(this._regionCache.has(key))return this._regionCache.get(key);
+      const r=this.guideRegion(name),doc=global.document;
+      if(!this.actorGuideReady||!this.actorGuideAtlas||!r||!doc?.createElement)return null;
+      // These contours intentionally leave breathing room around hair, hems,
+      // weapons, feet, ears and tail. Curved joins avoid faceted polygon edges.
+      const paths={
+        'exploration-player':[[67,0],[111,5],[126,42],[145,65],[151,116],[163,151],[151,207],[166,274],[136,302],[102,280],[79,302],[40,294],[43,244],[23,211],[31,158],[22,116],[39,69],[43,23]],
+        'battle-player':[[78,0],[119,5],[132,39],[154,65],[146,112],[165,151],[149,191],[137,224],[165,276],[137,289],[96,276],[67,289],[31,283],[44,231],[17,210],[37,168],[10,139],[39,104],[31,66],[59,36]],
+        'swiftfang-fox':[[0,72],[35,49],[81,31],[132,25],[184,36],[230,18],[289,0],[286,38],[317,49],[352,70],[387,101],[389,153],[370,177],[340,184],[314,207],[280,218],[250,211],[226,243],[193,247],[171,231],[143,245],[103,242],[82,268],[48,270],[22,247],[0,234]]
+      };
+      const points=paths[name];
+      if(!points)return null;
+      try{
+        const subject=doc.createElement('canvas'),mask=doc.createElement('canvas'),feather=doc.createElement('canvas');
+        subject.width=mask.width=feather.width=r[2];subject.height=mask.height=feather.height=r[3];
+        const c=subject.getContext('2d'),m=mask.getContext('2d'),f=feather.getContext('2d');
+        if(!c||!m||!f)return null;
+        c.drawImage(this.actorGuideAtlas,r[0],r[1],r[2],r[3],0,0,r[2],r[3]);
+        m.beginPath();m.moveTo(points[0][0],points[0][1]);
+        for(let i=1;i<=points.length;i++){
+          const p=points[i%points.length],next=points[(i+1)%points.length];
+          m.quadraticCurveTo(p[0],p[1],(p[0]+next[0])/2,(p[1]+next[1])/2);
+        }
+        m.closePath();m.fillStyle='#fff';m.fill();m.strokeStyle='#fff';m.lineWidth=4;m.lineJoin='round';m.stroke();
+        // Feather only the alpha mask. Never blur or redraw the subject itself.
+        f.filter='blur(1.25px)';f.drawImage(mask,0,0);f.filter='none';
+        c.globalCompositeOperation='destination-in';c.drawImage(feather,0,0);c.globalCompositeOperation='source-over';
+        this._regionCache.set(key,subject);return subject;
+      }catch(e){return null;}
+    }
     _drawGuideSubject(ctx,name,x,y,w,h){const subject=this._guideSubject(name);if(!subject)return false;ctx.drawImage(subject,x,y,w,h);return true;}
     _projectY(rawY){return 62+(rawY-62)*.76;}
     _depthScale(screenY,h){return .78+Math.max(0,Math.min(1,(screenY-62)/Math.max(1,h-62)))*.3;}
