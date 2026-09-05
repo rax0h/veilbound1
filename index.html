@@ -10,8 +10,9 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Veilbound">
 <meta name="theme-color" content="#0a0612">
+<meta name="veilbound-build" content="VB_TITLE_20260905">
 <title>Essence Awakening: Veilbound v65.2 Standalone</title>
-<link rel="stylesheet" href="styles/veilbound.css">
+<link rel="stylesheet" href="styles/veilbound.css?v=VB_TITLE_20260905">
 
 </head>
 <body class="vb-preworld">
@@ -21,18 +22,12 @@
 
     <!-- Title screen -->
     <div id="title-screen">
-      <div class="t-environment" aria-hidden="true">
-        <div class="t-sky"></div><div class="t-moon"></div>
-        <div class="t-mountains t-mountains-far"></div>
-        <div class="t-citadel"></div><div class="t-mountains t-mountains-near"></div>
-        <div class="t-trees t-trees-left"></div><div class="t-trees t-trees-right"></div>
-        <div class="t-fog t-fog-a"></div><div class="t-fog t-fog-b"></div>
-        <div class="t-embers"></div><div class="t-foreground"></div>
-      </div>
+      <picture class="t-artwork" aria-hidden="true">
+        <img src="assets/ui/IMG_7233.png?v=VB_TITLE_20260905" alt="" fetchpriority="high">
+      </picture>
+      <div class="t-atmosphere" aria-hidden="true"></div>
       <div class="t-particles" id="t-particles"></div>
       <main class="t-content">
-      <div class="t-kicker">A DARK FANTASY ODYSSEY</div>
-      <div class="t-emblem" aria-hidden="true"><span>V</span></div>
       <h1 class="t-main">VEILBOUND</h1>
       <div class="t-rule" aria-hidden="true"><i></i><b>◆</b><i></i></div>
       <div class="t-sub">WORLDS BEYOND. A SELF WITHIN.</div>
@@ -101,7 +96,7 @@
 
   </div>
 </div>
-<script src="scripts/visual-effects.js"></script>
+<script src="scripts/visual-effects.js?v=VB_TITLE_20260905"></script>
 <script>
 // Standalone-safe storage wrapper: protects local-file/private browsing runtimes.
 const VBStorage = {
@@ -109,6 +104,13 @@ const VBStorage = {
   setItem(k,v){ try { if (window.localStorage) window.localStorage.setItem(k,v); } catch(e){} },
   removeItem(k){ try { if (window.localStorage) window.localStorage.removeItem(k); } catch(e){} }
 };
+// Presentation hooks are optional and must never interrupt gameplay rendering.
+function callVeilboundVFX(method, ...args) {
+  const effect = window.VeilboundVFX?.[method];
+  if (typeof effect !== 'function') return false;
+  try { effect.apply(window.VeilboundVFX, args); return true; }
+  catch (error) { console.warn(`VeilboundVFX.${method} skipped:`, error); return false; }
+}
 const E={
 dark:{name:"Dark Essence",r:"Common",attr:"speed",col:"#7b2fff",em:"🌑",flav:"A cold crystal pulsing with absorbed light. It whispers of places between places.",
 ab:[{id:"shadow_step",name:"Shadow Step",type:"buff",cost:15,desc:"Untargetable 1 turn.",ef:[{t:"bf",s:"untargetable",d:1}]},
@@ -1848,12 +1850,12 @@ drawCinematicFX(zone, playerWorldX, playerWorldY) {
 const ctx = this.ctx; if (!ctx) return;
 const px = playerWorldX * TILE_PX - this.camX + TILE_PX * 0.5;
 const py = playerWorldY * TILE_PX - this.camY + TILE_PX * 0.58;
-window.VeilboundVFX?.composeWorld(ctx, this.canvas.width, this.canvas.height, zone, this.frame, px, py);
+callVeilboundVFX('composeWorld', ctx, this.canvas.width, this.canvas.height, zone, this.frame, px, py);
 }
 drawEntityGlow(worldX, worldY, color, radius=34, alpha=.18){
 const x=worldX*TILE_PX-this.camX+TILE_PX*.5;
 const y=worldY*TILE_PX-this.camY+TILE_PX*.55;
-window.VeilboundVFX?.glow(this.ctx,x,y,color,radius,alpha);
+callVeilboundVFX('glow', this.ctx,x,y,color,radius,alpha);
 }
 tick() {
 this.frame++;
@@ -2405,9 +2407,11 @@ r.ctx.imageSmoothingEnabled = false;
 const af = r.getAnimFrame();
 r.clear();
 if (!this.currentMapData) return;
-window.VeilboundVFX?.drawBackdrop(r.ctx, r.canvas.width, r.canvas.height, this.currentZone, r.frame, r.camX);
+callVeilboundVFX('drawBackdrop', r.ctx, r.canvas.width, r.canvas.height, this.currentZone, r.frame, r.camX);
 r.drawMap(this.currentMapData);
-window.VeilboundVFX?.finishTerrain(r.ctx, r.canvas.width, r.canvas.height, this.currentZone, r.frame, r.camX, r.camY);
+if (!callVeilboundVFX('finishTerrain', r.ctx, r.canvas.width, r.canvas.height, this.currentZone, r.frame, r.camX, r.camY)) {
+  callVeilboundVFX('softenGround', r.ctx, r.canvas.width, r.canvas.height, r.frame);
+}
 r.drawObjects(this.currentMapData);
 if (this.chests && this.chests.length) {
 for (const ch of this.chests) {
@@ -6347,7 +6351,7 @@ function __vbBindTitleSettings(){
   const hide=()=>{panel.hidden=true;open.setAttribute('aria-expanded','false');};
   open.addEventListener('click',()=>{panel.hidden=!panel.hidden;open.setAttribute('aria-expanded',String(!panel.hidden));});
   close?.addEventListener('click',hide);
-  motion?.addEventListener('click',()=>{const off=document.body.classList.toggle('vb-motion-off');motion.querySelector('strong').textContent=off?'OFF':'ON';window.VeilboundVFX?.setReducedMotion(off);});
+  motion?.addEventListener('click',()=>{const off=document.body.classList.toggle('vb-motion-off');motion.querySelector('strong').textContent=off?'OFF':'ON';callVeilboundVFX('setReducedMotion',off);});
 }
 document.addEventListener('DOMContentLoaded',()=>{__vbBindTitle();__vbBindTitleSettings();},{once:true});
 window.addEventListener('load', () => {
