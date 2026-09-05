@@ -38,4 +38,18 @@
     height: 1536,
     regions: Object.freeze(regions)
   });
+  const productionRegions = {
+    'class-vanguard':[8,174,108,199],'class-warden':[121,174,108,199],'class-acolyte':[232,174,108,199],
+    'class-rogue':[343,174,108,199],'class-arcanist':[454,174,108,199],'class-shaper':[565,174,104,199],
+    'nature-valiant':[678,146,110,298],'nature-cunning':[793,146,111,298],'nature-ruthless':[909,146,108,298],
+    'hero-down':[548,488,45,83],'hero-down-right':[617,488,45,83],'hero-right':[684,488,46,83],
+    'hero-up-right':[748,488,46,83],'hero-up':[817,488,45,83],'hero-up-left':[883,488,46,83],
+    'hero-left':[949,488,47,83],'hero-down-left':[548,578,45,82],
+    'enemy-shadow-wisp':[7,701,118,198],'enemy-dire-wolf':[127,701,124,198],
+    'enemy-forest-bear':[253,701,126,198],'enemy-rootling':[380,701,122,198],
+    'enemy-bramble-hound':[503,701,122,198],'enemy-spite-sprite':[626,701,121,198],
+    'enemy-moss-crawler':[749,701,144,198],'enemy-hollow-stag':[895,701,122,198]
+  };
+  Object.keys(productionRegions).forEach(name=>Object.freeze(productionRegions[name]));
+  global.VeilboundProductionAtlas=Object.freeze({source:'assets/ui/07121B0A-AF40-40BB-A6DC-F80BD9F6EBCE.png?v=VB_PRODUCTION_ATLAS_1',width:1024,height:1536,regions:Object.freeze(productionRegions)});
 })(window);
