@@ -53,6 +53,25 @@
   };
   Object.keys(productionRegions).forEach(name=>Object.freeze(productionRegions[name]));
   global.VeilboundProductionAtlas=Object.freeze({source:'assets/ui/07121B0A-AF40-40BB-A6DC-F80BD9F6EBCE.png?v=VB_PRODUCTION_ATLAS_1',width:1024,height:1536,regions:Object.freeze(productionRegions)});
+  // Approved HD presentation atlas. These bounds were audited against the
+  // original 1024x1536 sheet and deliberately exclude adjacent cards and UI.
+  // The nature crops retain their baked-in names, but stop before the baked-in
+  // mechanical copy so that the accessible runtime descriptor appears once.
+  const hdRegions={
+    'class-vanguard':[28,77,145,246],
+    'class-warden':[183,77,137,246],
+    'class-acolyte':[329,77,131,246],
+    'class-rogue':[468,77,131,246],
+    'class-arcanist':[609,77,143,246],
+    'nature-valiant':[16,537,236,251],
+    'nature-cunning':[259,537,227,251],
+    'nature-ruthless':[494,537,226,251],
+    // Clean subject bounds within the exploration and battle panels.
+    'exploration-hero':[244,1029,69,166],
+    'enemy-shadow-wisp':[813,979,181,279]
+  };
+  Object.keys(hdRegions).forEach(name=>Object.freeze(hdRegions[name]));
+  global.VeilboundHDAtlas=Object.freeze({source:'assets/ui/D195A07F-72C2-4686-8D11-1BF037C4B0BA.png?v=VB_HD_ATLAS_1',width:1024,height:1536,regions:Object.freeze(hdRegions)});
   // The latest approved composition is used for the three nature cards.  These
   // bounds deliberately stop above the exploration panels and include none of
   // the neighbouring card, footer, or sheet typography.

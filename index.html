@@ -10,9 +10,9 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Veilbound">
 <meta name="theme-color" content="#0a0612">
-<meta name="veilbound-build" content="VB_VISIBILITY_PASS_20260905">
+<meta name="veilbound-build" content="VB_HD_ATLAS_PASS_20260905">
 <title>Essence Awakening: Veilbound v65.2 Standalone</title>
-<link rel="stylesheet" href="styles/veilbound.css?v=VB_VISIBILITY_PASS_20260905">
+<link rel="stylesheet" href="styles/veilbound.css?v=VB_HD_ATLAS_PASS_20260905">
 
 </head>
 <body class="vb-preworld">
@@ -95,8 +95,8 @@
 
   </div>
 </div>
-<script src="scripts/wildwood-atlas.js?v=VB_VISIBILITY_PASS_20260905"></script>
-<script src="scripts/visual-effects.js?v=VB_VISIBILITY_PASS_20260905"></script>
+<script src="scripts/wildwood-atlas.js?v=VB_HD_ATLAS_PASS_20260905"></script>
+<script src="scripts/visual-effects.js?v=VB_HD_ATLAS_PASS_20260905"></script>
 <script>
 // Standalone-safe storage wrapper: protects local-file/private browsing runtimes.
 const VBStorage = {
@@ -5660,7 +5660,7 @@ _ccBuildAligns() {
 const wrap = document.getElementById('cc-aligns');
 if (!wrap) return;
 wrap.innerHTML = '';
-Object.entries(ALIGNMENTS).forEach(([k,a])=>{const card=document.createElement('button');card.type='button';card.className=`cc-align${k===this._ccAlign?' active':''}`;card.style.setProperty('--cc-aa',a.col);card.onclick=()=>this.ccPickAlign(k);const cv=document.createElement('canvas');cv.width=110;cv.height=298;card.appendChild(cv);const copy=document.createElement('span');copy.className='cc-align-copy';copy.innerHTML=`<span class="cc-align-nm">${a.name}</span><span class="cc-align-tint">${a.tint}</span>`;card.appendChild(copy);wrap.appendChild(card);callVeilboundVFX('drawNatureCard',cv.getContext('2d'),k,0,0,110,298);});
+Object.entries(ALIGNMENTS).forEach(([k,a])=>{const card=document.createElement('button');card.type='button';card.className=`cc-align${k===this._ccAlign?' active':''}`;card.style.setProperty('--cc-aa',a.col);card.setAttribute('aria-label',`${a.name}: ${a.tint}`);card.onclick=()=>this.ccPickAlign(k);const cv=document.createElement('canvas');cv.width=236;cv.height=251;card.appendChild(cv);const copy=document.createElement('span');copy.className='cc-align-copy';copy.innerHTML=`<span class="cc-align-tint">${a.tint}</span>`;card.appendChild(copy);wrap.appendChild(card);callVeilboundVFX('drawNatureCard',cv.getContext('2d'),k,0,0,236,251);});
 document.getElementById('cc-align-desc').textContent = ALIGNMENTS[this._ccAlign].desc;
 },
 ccPickAlign(k) {
