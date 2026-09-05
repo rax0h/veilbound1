@@ -1,0 +1,25 @@
+<!-- Temporary presentation placeholder; not approved or final fox artwork. -->
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="512" viewBox="0 0 1024 512">
+  <defs>
+    <radialGradient id="fur" cx="40%" cy="28%" r="72%"><stop stop-color="#ef9a42"/><stop offset=".48" stop-color="#b64d20"/><stop offset="1" stop-color="#5b2014"/></radialGradient>
+    <linearGradient id="chest" x2="0" y2="1"><stop stop-color="#fff1d3"/><stop offset="1" stop-color="#b99a72"/></linearGradient>
+    <filter id="soft"><feGaussianBlur stdDeviation="7"/></filter>
+    <filter id="furShadow"><feDropShadow dx="0" dy="9" stdDeviation="7" flood-color="#050705" flood-opacity=".85"/></filter>
+    <g id="fox" filter="url(#furShadow)">
+      <path d="M92 354C38 330 22 278 59 245c27-25 78-8 117 28-22-53-4-107 44-126 67-26 149 14 164 85 12 56-17 116-69 141-60 28-151 14-223-19Z" fill="url(#fur)"/>
+      <path d="M314 170 347 61l55 116M218 153 182 57l82 72" fill="#8f341d" stroke="#431711" stroke-width="9" stroke-linejoin="round"/>
+      <path d="m326 141 19-53 28 72M213 126l-18-45 47 58" fill="#2a1515"/>
+      <path d="M217 164c39-34 111-29 147 16 29 37 24 96-15 128-30 25-91 25-125-4-43-36-47-104-7-140Z" fill="url(#fur)"/>
+      <path d="M224 224c29 13 77 19 130-2-4 56-27 87-66 88-38 0-60-31-64-86Z" fill="url(#chest)"/>
+      <path d="M251 220c13-12 31-12 42 0-8 12-34 13-42 0Z" fill="#171313"/>
+      <path d="M264 224c4 29 23 31 32 4" fill="none" stroke="#2a1716" stroke-width="5" stroke-linecap="round"/>
+      <path d="M226 193c14-14 33-14 48 0-16 11-34 11-48 0Zm78 0c15-14 35-14 48 0-14 11-32 11-48 0Z" fill="#241811"/>
+      <ellipse cx="253" cy="190" rx="5" ry="7" fill="#eac85e"/><ellipse cx="326" cy="190" rx="5" ry="7" fill="#eac85e"/>
+      <path d="M116 277c-57-36-94 4-77 44 13 30 56 41 95 38-23-14-34-34-18-82Z" fill="#e9d2ad" opacity=".92"/>
+      <path d="M167 285c-11 59-1 111 20 150m106-89c12 35 13 67 5 96" fill="none" stroke="#552016" stroke-width="27" stroke-linecap="round"/>
+      <path d="M172 431h31m82 10h31" stroke="#17110e" stroke-width="18" stroke-linecap="round"/>
+    </g>
+  </defs>
+  <g transform="translate(32 12)"><ellipse cx="255" cy="434" rx="166" ry="26" fill="#000" opacity=".28" filter="url(#soft)"/><use href="#fox"/></g>
+  <g transform="translate(1001 12) scale(-1 1)"><ellipse cx="255" cy="434" rx="166" ry="26" fill="#000" opacity=".28" filter="url(#soft)"/><use href="#fox"/></g>
+</svg>
