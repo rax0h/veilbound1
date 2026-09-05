@@ -10,9 +10,9 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Veilbound">
 <meta name="theme-color" content="#0a0612">
-<meta name="veilbound-build" content="VB_PRODUCTION_HD_20260905">
+<meta name="veilbound-build" content="VB_VISIBILITY_PASS_20260905">
 <title>Essence Awakening: Veilbound v65.2 Standalone</title>
-<link rel="stylesheet" href="styles/veilbound.css?v=VB_PRODUCTION_HD_20260905">
+<link rel="stylesheet" href="styles/veilbound.css?v=VB_VISIBILITY_PASS_20260905">
 
 </head>
 <body class="vb-preworld">
@@ -23,7 +23,7 @@
     <!-- Title screen -->
     <div id="title-screen">
       <picture class="t-artwork" aria-hidden="true">
-        <img src="assets/ui/IMG_7233.png?v=VB_PRODUCTION_HD_20260905" alt="" fetchpriority="high">
+        <img src="assets/ui/IMG_7233.png?v=VB_VISIBILITY_PASS_20260905" alt="" fetchpriority="high">
       </picture>
       <div class="t-atmosphere" aria-hidden="true"></div>
       <div class="t-particles" id="t-particles"></div>
@@ -95,8 +95,8 @@
 
   </div>
 </div>
-<script src="scripts/wildwood-atlas.js?v=VB_PRODUCTION_HD_20260905"></script>
-<script src="scripts/visual-effects.js?v=VB_PRODUCTION_HD_20260905"></script>
+<script src="scripts/wildwood-atlas.js?v=VB_VISIBILITY_PASS_20260905"></script>
+<script src="scripts/visual-effects.js?v=VB_VISIBILITY_PASS_20260905"></script>
 <script>
 // Standalone-safe storage wrapper: protects local-file/private browsing runtimes.
 const VBStorage = {
@@ -2755,6 +2755,7 @@ this.monsterHP, this.monsterMaxHP, '#e0403f', '#2a0808');
 ctx.fillStyle = '#fff';
 ctx.font = 'bold 12px monospace';
 ctx.textAlign = 'center';
+// Atlas crops stop before their baked labels, so the accessible runtime name is shown once.
 ctx.fillText(this.monsterData.name, mCx, mGround + 32);
 ctx.font = 'bold 11px monospace';
 ctx.fillStyle = '#ffd0d0';
@@ -3100,7 +3101,8 @@ ctx.lineWidth = 1.5;
 ctx.strokeRect(r.x+0.5, r.y+0.5, r.w-1, r.h-1);
 ctx.fillStyle = btn.enabled ? '#ffffff' : '#5a5a68';
 ctx.font = 'bold 11px monospace';                   // was 8px
-const name = ab.name;
+// Presentation label only; ability identity and behavior remain unchanged.
+const name = ab._eid ? `Use Essence · ${ab.name}` : ab.name;
 const l1 = name.slice(0,13);
 const l2 = name.length > 13 ? name.slice(13,25) : '';
 ctx.shadowColor = 'rgba(0,0,0,0.7)'; ctx.shadowBlur = 2;
