@@ -10,9 +10,9 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Veilbound">
 <meta name="theme-color" content="#0a0612">
-<meta name="veilbound-build" content="VB_HD_ATLAS_PASS_20260905">
+<meta name="veilbound-build" content="VB_EXPLORATION_CAMERA_PASS_20260905">
 <title>Essence Awakening: Veilbound v65.2 Standalone</title>
-<link rel="stylesheet" href="styles/veilbound.css?v=VB_HD_ATLAS_PASS_20260905">
+<link rel="stylesheet" href="styles/veilbound.css?v=VB_EXPLORATION_CAMERA_PASS_20260905">
 
 </head>
 <body class="vb-preworld">
@@ -95,8 +95,8 @@
 
   </div>
 </div>
-<script src="scripts/wildwood-atlas.js?v=VB_HD_ATLAS_PASS_20260905"></script>
-<script src="scripts/visual-effects.js?v=VB_HD_ATLAS_PASS_20260905"></script>
+<script src="scripts/wildwood-atlas.js?v=VB_EXPLORATION_CAMERA_PASS_20260905"></script>
+<script src="scripts/visual-effects.js?v=VB_EXPLORATION_CAMERA_PASS_20260905"></script>
 <script>
 // Standalone-safe storage wrapper: protects local-file/private browsing runtimes.
 const VBStorage = {
@@ -1531,17 +1531,20 @@ return [parseInt(h.slice(0,2),16), parseInt(h.slice(2,4),16), parseInt(h.slice(4
 }
 centerOnTile(tileX, tileY, mapW, mapH) {
 const HUD_H = 62;
-const CTRL_H = 150;
 const tx = tileX * TILE_PX - this.canvas.width / 2 + TILE_PX / 2;
-const ty = tileY * TILE_PX - (HUD_H + (this.canvas.height - HUD_H - CTRL_H) / 2) + TILE_PX / 2;
+// Presentation-only camera lead. The logical tile remains untouched while the
+// actor's feet settle at roughly 62% of the visible canvas.
+const projectedFoot = this.canvas.height * 0.62;
+const rawFoot = HUD_H + (projectedFoot - HUD_H) / 0.76;
+const ty = (tileY + 1) * TILE_PX - rawFoot;
 this.targetCamX = Math.max(0, Math.min(Math.max(0,mapW * TILE_PX - this.canvas.width), tx));
 this.targetCamY = Math.max(0, Math.min(Math.max(0,mapH * TILE_PX - this.canvas.height), ty));
 if (!this._cameraPrimed) {
   this.camX = this.targetCamX; this.camY = this.targetCamY; this._cameraPrimed = true;
 } else {
-  // Cinematic easing: still crisp enough for pixel art, but removes the hard tile-camera snap.
-  this.camX += (this.targetCamX - this.camX) * 0.22;
-  this.camY += (this.targetCamY - this.camY) * 0.22;
+  // Gentle, short easing is visual only and never feeds back into movement.
+  this.camX += (this.targetCamX - this.camX) * 0.3;
+  this.camY += (this.targetCamY - this.camY) * 0.3;
 }
 }
 clear() {
@@ -2468,6 +2471,7 @@ r.drawExitMarker(tr.x, tr.y, this.renderer.frame, ZONE_DISPLAY_NAMES[tr.toZone] 
 }
 const palName = this._getPlayerPalette();
 if (!callVeilboundVFX('drawWildwoodActor', r.ctx, this.currentZone, 'player', this.player.facing, ppos.x, ppos.y, r.camX, r.camY, TILE_PX)) r.drawSprite(this.player.getSprName(af), palName, ppos.x, ppos.y, this.player.getFacingFlip());
+callVeilboundVFX('drawWildwoodOcclusion', r.ctx, this.currentZone, this.currentMapData, ppos.y, r.camX, r.camY, TILE_PX, r.frame);
 // Essence-touched beings subtly disturb the light instead of reading as flat stickers.
 for (const ent of this.entities) { if (ent.alive && (ent.id.includes('wisp') || ent.id.includes('wraith') || ent.id.includes('echo') || ent.id.includes('the_first'))) r.drawEntityGlow(ent.tileX, ent.tileY, 'rgba(150,95,255,.95)', 46, .22); }
 r.drawCinematicFX(this.currentZone, ppos.x, ppos.y);
