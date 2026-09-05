@@ -53,16 +53,23 @@
   };
   Object.keys(productionRegions).forEach(name=>Object.freeze(productionRegions[name]));
   global.VeilboundProductionAtlas=Object.freeze({source:'assets/ui/07121B0A-AF40-40BB-A6DC-F80BD9F6EBCE.png?v=VB_PRODUCTION_ATLAS_1',width:1024,height:1536,regions:Object.freeze(productionRegions)});
+  const foxRegions={
+    'enemy-swiftfang-fox-exploration':[0,0,512,512],
+    'enemy-swiftfang-fox-battle':[512,0,512,512]
+  };
+  Object.keys(foxRegions).forEach(name=>Object.freeze(foxRegions[name]));
+  global.VeilboundFoxAtlas=Object.freeze({source:'assets/characters/swiftfang-fox-atlas.svg?v=VB_FOX_ATLAS_1',width:1024,height:512,regions:Object.freeze(foxRegions)});
   // Approved HD presentation atlas. These bounds were audited against the
   // original 1024x1536 sheet and deliberately exclude adjacent cards and UI.
   // The nature crops retain their baked-in names, but stop before the baked-in
   // mechanical copy so that the accessible runtime descriptor appears once.
   const hdRegions={
-    'class-vanguard':[28,77,145,246],
-    'class-warden':[183,77,137,246],
-    'class-acolyte':[329,77,131,246],
-    'class-rogue':[468,77,131,246],
-    'class-arcanist':[609,77,143,246],
+    // A consistent head-and-torso window for both large and thumbnail uses.
+    'class-vanguard':[28,77,145,216],
+    'class-warden':[183,77,137,216],
+    'class-acolyte':[329,77,131,216],
+    'class-rogue':[468,77,131,216],
+    'class-arcanist':[609,77,143,216],
     'nature-valiant':[16,537,236,251],
     'nature-cunning':[259,537,227,251],
     'nature-ruthless':[494,537,226,251],
