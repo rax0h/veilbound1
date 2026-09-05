@@ -21,15 +21,33 @@
 
     <!-- Title screen -->
     <div id="title-screen">
+      <div class="t-environment" aria-hidden="true">
+        <div class="t-sky"></div><div class="t-moon"></div>
+        <div class="t-mountains t-mountains-far"></div>
+        <div class="t-citadel"></div><div class="t-mountains t-mountains-near"></div>
+        <div class="t-trees t-trees-left"></div><div class="t-trees t-trees-right"></div>
+        <div class="t-fog t-fog-a"></div><div class="t-fog t-fog-b"></div>
+        <div class="t-embers"></div><div class="t-foreground"></div>
+      </div>
       <div class="t-particles" id="t-particles"></div>
-      <div class="t-emblem">⬡</div>
-      <div class="t-main">Essence Awakening</div>
-      <div class="t-sub">Veilbound · cinematic build 65.2</div>
+      <main class="t-content">
+      <div class="t-kicker">A DARK FANTASY ODYSSEY</div>
+      <div class="t-emblem" aria-hidden="true"><span>V</span></div>
+      <h1 class="t-main">VEILBOUND</h1>
+      <div class="t-rule" aria-hidden="true"><i></i><b>◆</b><i></i></div>
+      <div class="t-sub">WORLDS BEYOND. A SELF WITHIN.</div>
       <div class="t-btns">
-        <input type="text" id="name-input" placeholder="Your name (blank = Outsider)" maxlength="20" autocomplete="off">
         <button class="ui-btn ui-btn-veil" id="begin-journey-btn" type="button">Begin Journey</button>
         <button class="ui-btn ui-btn-sec" id="continue-btn" style="display:none" onclick="G.continueGame()">Continue</button>
+        <button class="ui-btn ui-btn-sec" id="settings-btn" type="button" aria-expanded="false">Settings</button>
       </div>
+      </main>
+      <div class="t-settings" id="title-settings" hidden>
+        <div class="t-settings-head">DISPLAY SETTINGS <button id="settings-close" aria-label="Close settings">×</button></div>
+        <button class="t-setting-row" id="motion-toggle" type="button"><span>Atmospheric motion</span><strong>ON</strong></button>
+        <p>Motion follows your device preference by default. This setting affects presentation only.</p>
+      </div>
+      <div class="t-version">VEILBOUND <span>Ⅱ</span></div>
     </div>
 
     <!-- ══ Character Creation ══ -->
@@ -2389,7 +2407,7 @@ r.clear();
 if (!this.currentMapData) return;
 window.VeilboundVFX?.drawBackdrop(r.ctx, r.canvas.width, r.canvas.height, this.currentZone, r.frame, r.camX);
 r.drawMap(this.currentMapData);
-window.VeilboundVFX?.softenGround(r.ctx, r.canvas.width, r.canvas.height, r.frame);
+window.VeilboundVFX?.finishTerrain(r.ctx, r.canvas.width, r.canvas.height, this.currentZone, r.frame, r.camX, r.camY);
 r.drawObjects(this.currentMapData);
 if (this.chests && this.chests.length) {
 for (const ch of this.chests) {
@@ -6321,9 +6339,19 @@ function __vbBindTitle(){
   },{passive:false});
   b.addEventListener('touchend',__vbBeginJourney,{passive:false});
 }
-document.addEventListener('DOMContentLoaded',__vbBindTitle,{once:true});
+function __vbBindTitleSettings(){
+  const open=document.getElementById('settings-btn'), panel=document.getElementById('title-settings');
+  const close=document.getElementById('settings-close'), motion=document.getElementById('motion-toggle');
+  if(!open||!panel||open.dataset.vbSettingsBound==='1') return;
+  open.dataset.vbSettingsBound='1';
+  const hide=()=>{panel.hidden=true;open.setAttribute('aria-expanded','false');};
+  open.addEventListener('click',()=>{panel.hidden=!panel.hidden;open.setAttribute('aria-expanded',String(!panel.hidden));});
+  close?.addEventListener('click',hide);
+  motion?.addEventListener('click',()=>{const off=document.body.classList.toggle('vb-motion-off');motion.querySelector('strong').textContent=off?'OFF':'ON';window.VeilboundVFX?.setReducedMotion(off);});
+}
+document.addEventListener('DOMContentLoaded',()=>{__vbBindTitle();__vbBindTitleSettings();},{once:true});
 window.addEventListener('load', () => {
-  try { G.init(); __vbBindTitle(); }
+  try { G.init(); __vbBindTitle(); __vbBindTitleSettings(); }
   catch(err){ __vbShowBootError(err); }
 });
 window.addEventListener('error', (e) => {
