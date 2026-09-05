@@ -22,9 +22,58 @@
   }
 
   class VisualEffectsSystem {
-    constructor(){this.particles=new ParticleField();this.reduceMotion=!!global.matchMedia?.('(prefers-reduced-motion: reduce)').matches;this._groundCache=new Map();}
+    constructor(){
+      this.particles=new ParticleField();this.reduceMotion=!!global.matchMedia?.('(prefers-reduced-motion: reduce)').matches;this._groundCache=new Map();
+      this.atlas=null;this.assetsReady=false;this.assetsFailed=false;this._preloadWildwood();
+    }
+    _preloadWildwood(){
+      const metadata=global.WildwoodAtlas;
+      if(typeof global.Image!=='function'||!metadata?.source||!metadata?.regions){this.assetsFailed=true;return;}
+      const image=new global.Image();image.decoding='async';image.onload=()=>{
+        if(image.naturalWidth!==metadata.width||image.naturalHeight!==metadata.height){this.assetsFailed=true;return;}
+        this.atlas=image;this.assetsReady=true;
+      };image.onerror=()=>{this.assetsFailed=true;};image.src=metadata.source;
+    }
+    isWildwood(zone){return zone==='wildwood_start'||zone==='wildwood_deep';}
+    region(name){return global.WildwoodAtlas?.regions?.[name];}
+    drawRegion(ctx,name,x,y,w,h){const r=this.region(name);if(!this.assetsReady||!this.atlas||!r)return false;ctx.drawImage(this.atlas,r[0],r[1],r[2],r[3],x,y,w,h);return true;}
     setReducedMotion(value){this.reduceMotion=!!value;}
     profile(zone){return PROFILES[zone]||PROFILES.wildwood_start;}
+    drawWildwoodGround(ctx,w,h,zone,map,camX,camY,tileSize,frame){
+      if(!this.isWildwood(zone)||!this.assetsReady||!map?.tiles)return false;
+      ctx.save();ctx.imageSmoothingEnabled=true;
+      const startX=Math.max(0,Math.floor(camX/tileSize)-1),startY=Math.max(0,Math.floor(camY/tileSize)-1);
+      const endX=Math.min(map.width-1,startX+Math.ceil(w/tileSize)+2),endY=Math.min(map.height-1,startY+Math.ceil(h/tileSize)+2);
+      for(let ty=startY;ty<=endY;ty++)for(let tx=startX;tx<=endX;tx++){
+        const id=map.tiles[ty]?.[tx]??0,seed=hash(tx,ty),deep=zone==='wildwood_deep';
+        let name=(seed>.54?'ground-leaves':'ground-moss');
+        if(id>=41&&id<=48)name=seed>.68?'path-stone':'path-dirt';
+        else if(id>=52&&id<=56)name='path-stone';
+        else if(id>=58&&id<=62)name='water';
+        else if(id===63||id===64)name='ground-stone';
+        const x=Math.floor(tx*tileSize-camX),y=Math.floor(ty*tileSize-camY);
+        ctx.globalAlpha=deep?.78:.92;this.drawRegion(ctx,name,x-1,y-1,tileSize+2,tileSize+2);
+        // Soft overlapping edge wash removes the contact-sheet crop's square read.
+        ctx.globalAlpha=.12;ctx.fillStyle=deep?'#07130c':'#162619';ctx.beginPath();ctx.ellipse(x+tileSize*(.35+seed*.3),y+tileSize*.55,tileSize*.68,tileSize*.5,seed*2,0,Math.PI*2);ctx.fill();
+      }
+      ctx.restore();return true;
+    }
+    drawWildwoodObjects(ctx,zone,map,camX,camY,tileSize){
+      if(!this.isWildwood(zone)||!this.assetsReady||!map?.objects)return false;
+      const mapping=t=>t.includes('tree_pine')?'tree-pine':t.includes('tree_round')?'tree-round':t.includes('rock')?'rock':t.includes('log')?'log':t.includes('bush')||t.includes('mushroom')?'fern':t.includes('ruin')?'ruin':null;
+      ctx.save();ctx.imageSmoothingEnabled=true;
+      [...map.objects].sort((a,b)=>a.ty-b.ty).forEach(o=>{const name=mapping(o.type),region=name&&this.region(name);if(!region)return;const seed=hash(o.tx,o.ty),scale=(name.startsWith('tree')?1.02:name==='ruin'?1.08:.62)*(0.91+seed*.18);const dw=region[2]*scale,dh=region[3]*scale,x=o.tx*tileSize-camX+tileSize/2-dw/2,y=(o.ty+1)*tileSize-camY-dh;
+        if(x>ctx.canvas.width||x+dw<0||y>ctx.canvas.height||y+dh<55)return;
+        ctx.globalAlpha=.34;ctx.fillStyle='#020503';ctx.beginPath();ctx.ellipse(x+dw*.51,y+dh*.92,dw*.34,Math.max(3,dh*.055),-.12,0,Math.PI*2);ctx.fill();ctx.globalAlpha=zone==='wildwood_deep'?.88:1;this.drawRegion(ctx,name,x,y,dw,dh);
+      });ctx.restore();return true;
+    }
+    drawWildwoodActor(ctx,zone,kind,facing,worldX,worldY,camX,camY,tileSize){
+      if(!this.isWildwood(zone)||!this.assetsReady)return false;
+      const name=kind==='player'?`player-${facing||'down'}`:kind==='npc'?'npc':kind==='bear'?'bear':'wolf',region=this.region(name);if(!region)return false;
+      const h=kind==='player'?72:kind==='npc'?76:68,w=h*region[2]/region[3],x=worldX*tileSize-camX+tileSize/2-w/2,y=(worldY+1)*tileSize-camY-h;
+      ctx.save();ctx.imageSmoothingEnabled=true;ctx.globalAlpha=.32;ctx.fillStyle='#000';ctx.beginPath();ctx.ellipse(x+w/2,y+h*.94,w*.34,4,0,0,Math.PI*2);ctx.fill();ctx.globalAlpha=1;this.drawRegion(ctx,name,x,y,w,h);ctx.restore();return true;
+    }
+    drawBattleBackdrop(ctx,w,h,zone){if(!this.isWildwood(zone)||!this.assetsReady)return false;ctx.save();ctx.imageSmoothingEnabled=true;if(!this.drawRegion(ctx,'combat-forest',0,0,w,h)){ctx.restore();return false;}const g=ctx.createLinearGradient(0,h*.42,0,h);g.addColorStop(0,'rgba(3,8,5,0)');g.addColorStop(1,'rgba(3,5,4,.48)');ctx.fillStyle=g;ctx.fillRect(0,0,w,h);ctx.restore();return true;}
     drawBackdrop(ctx,w,h,zone,frame,cameraX=0){const p=this.profile(zone),g=ctx.createLinearGradient(0,0,0,h);g.addColorStop(0,p.sky[0]);g.addColorStop(.5,p.sky[1]);g.addColorStop(1,'#090b09');ctx.fillStyle=g;ctx.fillRect(0,0,w,h);ctx.save();
       // Distant forest and broken monumental arches establish atmospheric scale.
       for(let layer=0;layer<3;layer++){const base=h*(.18+layer*.095),shift=(cameraX*(.018+layer*.014))%140;ctx.fillStyle=layer===2?'rgba(5,10,8,.76)':rgba(p.fog,.12-layer*.022);ctx.beginPath();ctx.moveTo(-80,h);for(let x=-80;x<w+100;x+=38){const peak=base-20-hash(Math.floor((x+shift)/38),layer)*75;ctx.lineTo(x,base);ctx.lineTo(x+13,peak);ctx.lineTo(x+25,base+5);}ctx.lineTo(w+100,h);ctx.closePath();ctx.fill();}

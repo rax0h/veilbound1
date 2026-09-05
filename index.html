@@ -10,9 +10,9 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Veilbound">
 <meta name="theme-color" content="#0a0612">
-<meta name="veilbound-build" content="VB_TITLE_20260905">
+<meta name="veilbound-build" content="VB_WILDWOOD_HD_20260905">
 <title>Essence Awakening: Veilbound v65.2 Standalone</title>
-<link rel="stylesheet" href="styles/veilbound.css?v=VB_TITLE_20260905">
+<link rel="stylesheet" href="styles/veilbound.css?v=VB_WILDWOOD_HD_20260905">
 
 </head>
 <body class="vb-preworld">
@@ -23,14 +23,13 @@
     <!-- Title screen -->
     <div id="title-screen">
       <picture class="t-artwork" aria-hidden="true">
-        <img src="assets/ui/IMG_7233.png?v=VB_TITLE_20260905" alt="" fetchpriority="high">
+        <img src="assets/ui/IMG_7233.png?v=VB_WILDWOOD_HD_20260905" alt="" fetchpriority="high">
       </picture>
       <div class="t-atmosphere" aria-hidden="true"></div>
       <div class="t-particles" id="t-particles"></div>
       <main class="t-content">
       <h1 class="t-main">VEILBOUND</h1>
       <div class="t-rule" aria-hidden="true"><i></i><b>◆</b><i></i></div>
-      <div class="t-sub">WORLDS BEYOND. A SELF WITHIN.</div>
       <div class="t-btns">
         <button class="ui-btn ui-btn-veil" id="begin-journey-btn" type="button">Begin Journey</button>
         <button class="ui-btn ui-btn-sec" id="continue-btn" style="display:none" onclick="G.continueGame()">Continue</button>
@@ -96,7 +95,8 @@
 
   </div>
 </div>
-<script src="scripts/visual-effects.js?v=VB_TITLE_20260905"></script>
+<script src="scripts/wildwood-atlas.js?v=VB_WILDWOOD_HD_20260905"></script>
+<script src="scripts/visual-effects.js?v=VB_WILDWOOD_HD_20260905"></script>
 <script>
 // Standalone-safe storage wrapper: protects local-file/private browsing runtimes.
 const VBStorage = {
@@ -108,7 +108,7 @@ const VBStorage = {
 function callVeilboundVFX(method, ...args) {
   const effect = window.VeilboundVFX?.[method];
   if (typeof effect !== 'function') return false;
-  try { effect.apply(window.VeilboundVFX, args); return true; }
+  try { return effect.apply(window.VeilboundVFX, args) !== false; }
   catch (error) { console.warn(`VeilboundVFX.${method} skipped:`, error); return false; }
 }
 const E={
@@ -1690,11 +1690,11 @@ const ctx = this.ctx; if (!ctx) return;
 const W = this.canvas.width;
 const H = 62;                       // was 28 — now roomy and legible
 const grd = ctx.createLinearGradient(0,0,0,H);
-grd.addColorStop(0,'rgba(14,9,24,0.94)');
-grd.addColorStop(1,'rgba(10,6,18,0.88)');
+grd.addColorStop(0,'rgba(8,11,9,0.94)');
+grd.addColorStop(1,'rgba(5,8,6,0.88)');
 ctx.fillStyle = grd;
 ctx.fillRect(0, 0, W, H);
-ctx.fillStyle = 'rgba(139,111,196,0.55)';
+ctx.fillStyle = 'rgba(201,173,114,0.55)';
 ctx.fillRect(0, H-2, W, 2);
 const PAD = 10;
 const barW = Math.floor((W - PAD*3) * 0.52);   // HP bar
@@ -1709,10 +1709,10 @@ ctx.fillStyle = hpCol;
 ctx.fillRect(PAD, y1, Math.floor(barW * hpR), barH);
 ctx.fillStyle = 'rgba(255,255,255,0.16)';
 ctx.fillRect(PAD, y1, Math.floor(barW * hpR), Math.floor(barH/2.6));
-ctx.strokeStyle = 'rgba(200,180,255,0.4)'; ctx.lineWidth = 1;
+ctx.strokeStyle = 'rgba(213,187,132,0.38)'; ctx.lineWidth = 1;
 ctx.strokeRect(PAD+0.5, y1+0.5, barW-1, barH-1);
 ctx.fillStyle = '#fff';
-ctx.font = 'bold 12px monospace';
+ctx.font = '11px Georgia, serif';
 ctx.fillText('HP', PAD+5, y1+barH-3);
 ctx.textAlign = 'right';
 ctx.fillText(player.hp + '/' + player.maxHp, PAD+barW-5, y1+barH-3);
@@ -1725,7 +1725,7 @@ ctx.fillStyle = '#4aa8e8';
 ctx.fillRect(mx, y1, Math.floor(barW2 * mpR), barH);
 ctx.fillStyle = 'rgba(255,255,255,0.16)';
 ctx.fillRect(mx, y1, Math.floor(barW2 * mpR), Math.floor(barH/2.6));
-ctx.strokeStyle = 'rgba(200,180,255,0.4)';
+ctx.strokeStyle = 'rgba(213,187,132,0.38)';
 ctx.strokeRect(mx+0.5, y1+0.5, barW2-1, barH-1);
 ctx.fillStyle = '#fff';
 ctx.fillText('MP', mx+5, y1+barH-3);
@@ -1733,20 +1733,20 @@ ctx.textAlign = 'right';
 ctx.fillText(player.mp + '/' + player.maxMp, mx+barW2-5, y1+barH-3);
 ctx.textAlign = 'left';
 const y2 = y1 + barH + 6;
-ctx.font = 'bold 13px monospace';
-ctx.fillStyle = '#c9a4ff';
+ctx.font = '12px Georgia, serif';
+ctx.fillStyle = '#d5bd8c';
 const rankTxt = (game.rk || 'Unranked');
 ctx.fillText(rankTxt, PAD, y2 + 12);
 const bonded = (game.bd || []).length;
 const pipX = PAD + ctx.measureText(rankTxt).width + 10;
 for (let i = 0; i < 4; i++) {
 const on = i < bonded;
-ctx.fillStyle = on ? '#c9a4ff' : 'rgba(255,255,255,0.16)';
+ctx.fillStyle = on ? '#d5bd8c' : 'rgba(255,255,255,0.16)';
 ctx.beginPath();
 ctx.arc(pipX + i*13, y2 + 8, 4.5, 0, Math.PI*2);
 ctx.fill();
 if (on) {
-ctx.strokeStyle = 'rgba(220,200,255,0.8)'; ctx.lineWidth = 1;
+ctx.strokeStyle = 'rgba(232,207,154,0.72)'; ctx.lineWidth = 1;
 ctx.stroke();
 }
 }
@@ -1754,12 +1754,12 @@ const zn = (typeof ZONE_DISPLAY_NAMES !== 'undefined' && game.engine)
 ? (ZONE_DISPLAY_NAMES[game.engine.currentZone] || '') : '';
 if (zn) {
 ctx.fillStyle = 'rgba(232,223,245,0.75)';
-ctx.font = '11px monospace';
+ctx.font = '11px Georgia, serif';
 ctx.textAlign = 'center';
 ctx.fillText(zn, W/2, y2 + 12);
 ctx.textAlign = 'left';
 }
-ctx.font = 'bold 13px monospace';
+ctx.font = '12px Georgia, serif';
 ctx.fillStyle = '#ffd966';
 ctx.textAlign = 'right';
 ctx.fillText('✦ ' + (game.co||0), W - PAD, y2 + 12);
@@ -2409,10 +2409,11 @@ r.clear();
 if (!this.currentMapData) return;
 callVeilboundVFX('drawBackdrop', r.ctx, r.canvas.width, r.canvas.height, this.currentZone, r.frame, r.camX);
 r.drawMap(this.currentMapData);
+callVeilboundVFX('drawWildwoodGround', r.ctx, r.canvas.width, r.canvas.height, this.currentZone, this.currentMapData, r.camX, r.camY, TILE_PX, r.frame);
 if (!callVeilboundVFX('finishTerrain', r.ctx, r.canvas.width, r.canvas.height, this.currentZone, r.frame, r.camX, r.camY)) {
   callVeilboundVFX('softenGround', r.ctx, r.canvas.width, r.canvas.height, r.frame);
 }
-r.drawObjects(this.currentMapData);
+if (!callVeilboundVFX('drawWildwoodObjects', r.ctx, this.currentZone, this.currentMapData, r.camX, r.camY, TILE_PX)) r.drawObjects(this.currentMapData);
 if (this.chests && this.chests.length) {
 for (const ch of this.chests) {
 const spr = 'obj_chest' + ch.tier + (ch.opened ? '_o' : '');
@@ -2447,13 +2448,14 @@ r.drawShadow(npc.tileX, npc.tileY, 0.2);
 r.drawShadow(ppos.x, ppos.y, 0.3);
 for (const npc of this.npcs) {
 const npcPal = npc.sprite.replace(/_\d+$/, '');
-r.drawSprite(npc.sprite, npcPal, npc.tileX, npc.tileY);
+if (!callVeilboundVFX('drawWildwoodActor', r.ctx, this.currentZone, 'npc', 'down', npc.tileX, npc.tileY, r.camX, r.camY, TILE_PX)) r.drawSprite(npc.sprite, npcPal, npc.tileX, npc.tileY);
 }
 for (const ent of this.entities) {
 if (!ent.alive) continue;
 const sprName = ent.getSprName(af);
 const palName = ent.getPalName();
-r.drawSprite(sprName, palName, ent.tileX, ent.tileY);
+const hdEnemy = ent.id && ent.id.includes('bear') ? 'bear' : 'wolf';
+if (!callVeilboundVFX('drawWildwoodActor', r.ctx, this.currentZone, hdEnemy, 'down', ent.tileX, ent.tileY, r.camX, r.camY, TILE_PX)) r.drawSprite(sprName, palName, ent.tileX, ent.tileY);
 }
 const zdNow = ZONE_DATA[this.currentZone];
 if (zdNow && zdNow.transitions) {
@@ -2465,7 +2467,7 @@ r.drawExitMarker(tr.x, tr.y, this.renderer.frame, ZONE_DISPLAY_NAMES[tr.toZone] 
 });
 }
 const palName = this._getPlayerPalette();
-r.drawSprite(this.player.getSprName(af), palName, ppos.x, ppos.y, this.player.getFacingFlip());
+if (!callVeilboundVFX('drawWildwoodActor', r.ctx, this.currentZone, 'player', this.player.facing, ppos.x, ppos.y, r.camX, r.camY, TILE_PX)) r.drawSprite(this.player.getSprName(af), palName, ppos.x, ppos.y, this.player.getFacingFlip());
 // Essence-touched beings subtly disturb the light instead of reading as flat stickers.
 for (const ent of this.entities) { if (ent.alive && (ent.id.includes('wisp') || ent.id.includes('wraith') || ent.id.includes('echo') || ent.id.includes('the_first'))) r.drawEntityGlow(ent.tileX, ent.tileY, 'rgba(150,95,255,.95)', 46, .22); }
 r.drawCinematicFX(this.currentZone, ppos.x, ppos.y);
@@ -2702,6 +2704,9 @@ for(let i=0;i<18;i++){
   ctx.globalAlpha=.12+(i%4)*.04; ctx.fillStyle=P[4]; ctx.fillRect(x,y,(i%6===0)?2:1,(i%6===0)?2:1);
 }
 ctx.restore();
+// Approved forest stage replaces only the Wildwood battle presentation.
+// The procedural stage above remains an immediate fail-safe while images load.
+callVeilboundVFX('drawBattleBackdrop',ctx,W,H,zone);
 if (this.shake > 0) {
 const sx = (Math.random()-0.5) * 4;
 const sy = (Math.random()-0.5) * 3;
