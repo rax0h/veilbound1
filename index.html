@@ -51,7 +51,7 @@
           <div class="cc-title">Choose Your Path</div>
           <div class="cc-sub">Your class shapes your strengths and the essences that call to you.</div>
           <div class="cc-portrait-wrap">
-            <canvas id="cc-portrait" width="108" height="199"></canvas>
+            <canvas id="cc-portrait" width="240" height="300"></canvas>
             <div class="cc-portrait-glow" id="cc-glow"></div>
           </div>
           <div class="cc-cname" id="cc-cname">Vanguard</div>
@@ -5620,7 +5620,7 @@ const btn = document.createElement('button');
 btn.className = 'cc-cbtn' + (k===this._ccClass?' active':'');
 btn.style.setProperty('--cc-ac', CLASSES[k].col);
 const cv = document.createElement('canvas');
-cv.width = 108; cv.height = 199;
+cv.width = 96; cv.height = 96;
 btn.appendChild(cv);
 btn.onclick = () => { this._ccClass = k; this._ccRenderClass(); };
 wrap.appendChild(btn);

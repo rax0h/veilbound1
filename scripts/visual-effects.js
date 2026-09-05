@@ -27,7 +27,7 @@
   class VisualEffectsSystem {
     constructor(){
       this.particles=new ParticleField();this.reduceMotion=!!global.matchMedia?.('(prefers-reduced-motion: reduce)').matches;this._groundCache=new Map();
-      this.atlas=null;this.productionAtlas=null;this.referenceAtlas=null;this.hdAtlas=null;this.foxAtlas=null;this.assetsReady=false;this.productionReady=false;this.referenceReady=false;this.hdReady=false;this.foxReady=false;this.assetsFailed=false;this._regionCache=new Map();this._preloadWildwood();this._preloadProduction();this._preloadReference();this._preloadHD();this._preloadFox();
+      this.atlas=null;this.productionAtlas=null;this.referenceAtlas=null;this.hdAtlas=null;this.actorGuideAtlas=null;this.assetsReady=false;this.productionReady=false;this.referenceReady=false;this.hdReady=false;this.actorGuideReady=false;this.assetsFailed=false;this._regionCache=new Map();this._preloadWildwood();this._preloadProduction();this._preloadReference();this._preloadHD();this._preloadActorGuide();
     }
     _preloadWildwood(){
       const metadata=global.WildwoodAtlas;
@@ -40,7 +40,7 @@
     _preloadProduction(){const m=global.VeilboundProductionAtlas;if(typeof global.Image!=='function'||!m?.source||!m?.regions)return;const image=new global.Image();image.decoding='async';image.onload=()=>{if(image.naturalWidth!==m.width||image.naturalHeight!==m.height)return;this.productionAtlas=image;this.productionReady=true;global.dispatchEvent?.(new Event('veilbound-production-ready'));};image.onerror=()=>{};image.src=m.source;}
     _preloadReference(){const m=global.VeilboundReferenceAtlas;if(typeof global.Image!=='function'||!m?.source||!m?.regions)return;const image=new global.Image();image.decoding='async';image.onload=()=>{if(image.naturalWidth!==m.width||image.naturalHeight!==m.height)return;this.referenceAtlas=image;this.referenceReady=true;global.dispatchEvent?.(new Event('veilbound-production-ready'));};image.onerror=()=>{};image.src=m.source;}
     _preloadHD(){const m=global.VeilboundHDAtlas;if(typeof global.Image!=='function'||!m?.source||!m?.regions)return;const image=new global.Image();image.decoding='async';image.onload=()=>{if(image.naturalWidth!==m.width||image.naturalHeight!==m.height)return;this.hdAtlas=image;this.hdReady=true;global.dispatchEvent?.(new Event('veilbound-production-ready'));};image.onerror=()=>{};image.src=m.source;}
-    _preloadFox(){const m=global.VeilboundFoxAtlas;if(typeof global.Image!=='function'||!m?.source||!m?.regions)return;const image=new global.Image();image.decoding='async';image.onload=()=>{if(image.naturalWidth!==m.width||image.naturalHeight!==m.height)return;this.foxAtlas=image;this.foxReady=true;};image.onerror=()=>{};image.src=m.source;}
+    _preloadActorGuide(){const m=global.VeilboundActorGuideAtlas;if(typeof global.Image!=='function'||!m?.source||!m?.regions)return;const image=new global.Image();image.decoding='async';image.onload=()=>{if(image.naturalWidth!==m.width||image.naturalHeight!==m.height)return;this.actorGuideAtlas=image;this.actorGuideReady=true;};image.onerror=()=>{};image.src=m.source;}
     isWildwood(zone){return zone==='wildwood_start'||zone==='wildwood_deep';}
     region(name){return global.WildwoodAtlas?.regions?.[name];}
     drawRegion(ctx,name,x,y,w,h){const r=this.region(name);if(!this.assetsReady||!this.atlas||!r)return false;ctx.drawImage(this.atlas,r[0],r[1],r[2],r[3],x,y,w,h);return true;}
@@ -49,15 +49,47 @@
     drawProductionRegion(ctx,name,x,y,w,h,matte=false){const r=this.productionRegion(name);if(!this.productionReady||!this.productionAtlas||!r)return false;try{const crop=this._cachedCrop(this.productionAtlas,r,`production:${name}:${matte}`,matte);if(!crop)return false;ctx.drawImage(crop,x,y,w,h);return true;}catch(e){return false;}}
     hdRegion(name){return global.VeilboundHDAtlas?.regions?.[name];}
     drawHDRegion(ctx,name,x,y,w,h,matte=false){const r=this.hdRegion(name);if(!this.hdReady||!this.hdAtlas||!r)return false;try{const crop=this._cachedCrop(this.hdAtlas,r,`hd:${name}:${matte}`,matte);if(!crop)return false;ctx.drawImage(crop,x,y,w,h);return true;}catch(e){return false;}}
-    foxRegion(name){return global.VeilboundFoxAtlas?.regions?.[name];}
-    drawFoxRegion(ctx,name,x,y,w,h){const r=this.foxRegion(name);if(!this.foxReady||!this.foxAtlas||!r)return false;try{ctx.drawImage(this.foxAtlas,r[0],r[1],r[2],r[3],x,y,w,h);return true;}catch(e){return false;}}
+    guideRegion(name){return global.VeilboundActorGuideAtlas?.regions?.[name];}
+    _guideSubject(name){
+      const key=`guide:${name}:subject-v2`;
+      if(this._regionCache.has(key))return this._regionCache.get(key);
+      const r=this.guideRegion(name),doc=global.document;
+      if(!this.actorGuideReady||!this.actorGuideAtlas||!r||!doc?.createElement)return null;
+      // These contours intentionally leave breathing room around hair, hems,
+      // weapons, feet, ears and tail. Curved joins avoid faceted polygon edges.
+      const paths={
+        'exploration-player':[[67,0],[111,5],[126,42],[145,65],[151,116],[163,151],[151,207],[166,274],[136,302],[102,280],[79,302],[40,294],[43,244],[23,211],[31,158],[22,116],[39,69],[43,23]],
+        'battle-player':[[78,0],[119,5],[132,39],[154,65],[146,112],[165,151],[149,191],[137,224],[165,276],[137,289],[96,276],[67,289],[31,283],[44,231],[17,210],[37,168],[10,139],[39,104],[31,66],[59,36]],
+        'swiftfang-fox':[[0,72],[35,49],[81,31],[132,25],[184,36],[230,18],[289,0],[286,38],[317,49],[352,70],[387,101],[389,153],[370,177],[340,184],[314,207],[280,218],[250,211],[226,243],[193,247],[171,231],[143,245],[103,242],[82,268],[48,270],[22,247],[0,234]]
+      };
+      const points=paths[name];
+      if(!points)return null;
+      try{
+        const subject=doc.createElement('canvas'),mask=doc.createElement('canvas'),feather=doc.createElement('canvas');
+        subject.width=mask.width=feather.width=r[2];subject.height=mask.height=feather.height=r[3];
+        const c=subject.getContext('2d'),m=mask.getContext('2d'),f=feather.getContext('2d');
+        if(!c||!m||!f)return null;
+        c.drawImage(this.actorGuideAtlas,r[0],r[1],r[2],r[3],0,0,r[2],r[3]);
+        m.beginPath();m.moveTo(points[0][0],points[0][1]);
+        for(let i=1;i<=points.length;i++){
+          const p=points[i%points.length],next=points[(i+1)%points.length];
+          m.quadraticCurveTo(p[0],p[1],(p[0]+next[0])/2,(p[1]+next[1])/2);
+        }
+        m.closePath();m.fillStyle='#fff';m.fill();m.strokeStyle='#fff';m.lineWidth=4;m.lineJoin='round';m.stroke();
+        // Feather only the alpha mask. Never blur or redraw the subject itself.
+        f.filter='blur(1.25px)';f.drawImage(mask,0,0);f.filter='none';
+        c.globalCompositeOperation='destination-in';c.drawImage(feather,0,0);c.globalCompositeOperation='source-over';
+        this._regionCache.set(key,subject);return subject;
+      }catch(e){return null;}
+    }
+    _drawGuideSubject(ctx,name,x,y,w,h){const subject=this._guideSubject(name);if(!subject)return false;ctx.drawImage(subject,x,y,w,h);return true;}
     _projectY(rawY){return 62+(rawY-62)*.76;}
     _depthScale(screenY,h){return .78+Math.max(0,Math.min(1,(screenY-62)/Math.max(1,h-62)))*.3;}
     _explorationHero(){const key='hd:exploration-hero:subject';if(this._regionCache.has(key))return this._regionCache.get(key);const r=this.hdRegion('exploration-hero'),cv=global.document?.createElement?.('canvas');if(!this.hdReady||!this.hdAtlas||!r||!cv)return null;try{cv.width=r[2];cv.height=r[3];const c=cv.getContext('2d');if(!c)return null;c.save();c.beginPath();c.moveTo(31,2);c.lineTo(46,13);c.lineTo(51,45);c.lineTo(61,77);c.lineTo(55,114);c.lineTo(67,151);c.lineTo(48,165);c.lineTo(35,139);c.lineTo(22,165);c.lineTo(8,151);c.lineTo(17,111);c.lineTo(8,77);c.lineTo(20,45);c.lineTo(21,15);c.closePath();c.clip();c.drawImage(this.hdAtlas,r[0],r[1],r[2],r[3],0,0,r[2],r[3]);c.restore();c.globalCompositeOperation='destination-in';const fade=c.createRadialGradient(35,84,38,35,84,91);fade.addColorStop(0,'rgba(0,0,0,1)');fade.addColorStop(.78,'rgba(0,0,0,.98)');fade.addColorStop(1,'rgba(0,0,0,0)');c.fillStyle=fade;c.fillRect(0,0,cv.width,cv.height);this._regionCache.set(key,cv);return cv;}catch(e){return null;}}
-    drawClassPortrait(ctx,cls,x,y,w,h){const visual=CLASS_ART_ALIAS[cls]||cls,name=`class-${visual}`;return this.drawHDRegion(ctx,name,x,y,w,h)||this.drawProductionRegion(ctx,name,x,y,w,h);}
+    drawClassPortrait(ctx,cls,x,y,w,h){const visual=CLASS_ART_ALIAS[cls]||cls,thumb=Math.abs(w-h)<2?'-thumb':'',name=`class-${visual}${thumb}`;return this.drawHDRegion(ctx,name,x,y,w,h)||this.drawProductionRegion(ctx,`class-${visual}`,x,y,w,h);}
     drawNatureCard(ctx,nature,x,y,w,h){const name=`nature-${nature}`;if(this.drawHDRegion(ctx,name,x,y,w,h))return true;const r=global.VeilboundReferenceAtlas?.regions?.[name];if(this.referenceReady&&this.referenceAtlas&&r){try{ctx.drawImage(this.referenceAtlas,r[0],r[1],r[2],r[3],x,y,w,h);return true;}catch(e){/* fall through to the production sheet */}}return this.drawProductionRegion(ctx,name,x,y,w,h);}
     enemyRegionFor(id){const map={shadow_wisp:'shadow-wisp',dire_wolf:'dire-wolf',forest_bear:'forest-bear',rootling:'rootling',bramble_hound:'bramble-hound',spite_sprite:'spite-sprite',moss_crawler:'moss-crawler',hollow_stag:'hollow-stag',bloodthorn_sprout:'rootling',ember_crawler:'moss-crawler'};return map[id]&&`enemy-${map[id]}`;}
-    drawBattleActor(ctx,zone,kind,id,cx,groundY,maxH){if(!this.isWildwood(zone))return false;const fox=kind==='enemy'&&id==='swiftfang_fox',visual=CLASS_ART_ALIAS[id]||id,name=kind==='player'?`class-${visual||'vanguard'}`:this.enemyRegionFor(id),primaryName=kind==='enemy'&&id==='shadow_wisp'?'enemy-shadow-wisp':name,primary=this.hdRegion(primaryName),fallback=this.productionRegion(name),r=fox?this.foxRegion('enemy-swiftfang-fox-battle'):(this.hdReady&&primary)||fallback;if(!r)return false;const h=maxH*1.22,w=h*r[2]/r[3],x=cx-w/2,y=groundY-h;ctx.save();ctx.imageSmoothingEnabled=true;const separation=ctx.createRadialGradient(cx,groundY-h*.48,5,cx,groundY-h*.48,Math.max(w*1.15,76));separation.addColorStop(0,'rgba(1,4,3,.72)');separation.addColorStop(.68,'rgba(2,5,4,.32)');separation.addColorStop(1,'rgba(2,5,4,0)');ctx.fillStyle=separation;ctx.fillRect(cx-w*1.25,groundY-h*1.12,w*2.5,h*1.2);ctx.globalAlpha=.68;ctx.fillStyle='#010201';ctx.beginPath();ctx.ellipse(cx,groundY-2,w*.42,8,0,0,Math.PI*2);ctx.fill();ctx.globalAlpha=1;ctx.filter=kind==='player'?'contrast(1.12) drop-shadow(-3px -2px 3px rgba(130,205,224,.78)) drop-shadow(3px 0 5px rgba(242,190,101,.55))':'contrast(1.14) drop-shadow(-3px -2px 5px rgba(188,132,247,.82)) drop-shadow(3px 1px 6px rgba(239,177,105,.38))';const ok=fox?this.drawFoxRegion(ctx,'enemy-swiftfang-fox-battle',x,y,w,h):this.drawHDRegion(ctx,primaryName,x,y,w,h,true)||this.drawProductionRegion(ctx,name,x,y,w,h,true);ctx.restore();return ok?{sx:x,sy:y,w,h}:false;}
+    drawBattleActor(ctx,zone,kind,id,cx,groundY,maxH){if(!this.isWildwood(zone))return false;const fox=kind==='enemy'&&id==='swiftfang_fox',guideName=kind==='player'?'battle-player':fox?'swiftfang-fox':null,name=this.enemyRegionFor(id),r=guideName?this.guideRegion(guideName):(id==='shadow_wisp'&&this.hdRegion('enemy-shadow-wisp'))||this.productionRegion(name);if(!r)return false;const h=(fox?maxH*.72:maxH*1.22),w=h*r[2]/r[3],x=cx-w/2,y=groundY-h;ctx.save();ctx.imageSmoothingEnabled=true;ctx.globalAlpha=.68;ctx.fillStyle='#010201';ctx.beginPath();ctx.ellipse(cx,groundY-2,w*.42,8,0,0,Math.PI*2);ctx.fill();ctx.globalAlpha=1;ctx.filter=kind==='player'?'contrast(1.1) drop-shadow(0 4px 4px rgba(0,0,0,.8))':'contrast(1.12) drop-shadow(0 4px 5px rgba(0,0,0,.82))';const ok=guideName?this._drawGuideSubject(ctx,guideName,x,y,w,h):this.drawHDRegion(ctx,'enemy-shadow-wisp',x,y,w,h,true)||this.drawProductionRegion(ctx,name,x,y,w,h,true);ctx.restore();return ok?{sx:x,sy:y,w,h}:false;}
 
     setReducedMotion(value){this.reduceMotion=!!value;}
     profile(zone){return PROFILES[zone]||PROFILES.wildwood_start;}
@@ -96,8 +128,8 @@
     drawWildwoodActor(ctx,zone,kind,facing,worldX,worldY,camX,camY,tileSize){
       if(!this.isWildwood(zone)||!this.assetsReady)return false;
       const foot=this._projectY((worldY+1)*tileSize-camY),depth=this._depthScale(foot,ctx.canvas.height);
-      if(kind!=='player'&&kind!=='npc'){const fox=kind==='swiftfang_fox',enemyName=fox?'enemy-swiftfang-fox-exploration':this.enemyRegionFor(kind),enemyRegion=fox?this.foxRegion(enemyName):enemyName&&this.productionRegion(enemyName);if(!enemyRegion)return false;const h=(fox?82:70)*depth,w=h*enemyRegion[2]/enemyRegion[3],x=worldX*tileSize-camX+tileSize/2-w/2,y=foot-h;ctx.save();ctx.imageSmoothingEnabled=true;ctx.filter='drop-shadow(0 4px 3px rgba(0,0,0,.75)) drop-shadow(-1px -1px 2px rgba(223,187,116,.35))';const ok=fox?this.drawFoxRegion(ctx,enemyName,x,y,w,h):this.drawProductionRegion(ctx,enemyName,x,y,w,h,true);ctx.restore();return ok;}
-      const heroFacing={down:'hero-down',up:'hero-up',left:'hero-left',right:'hero-right'};if(kind==='player'&&(this.hdReady||this.productionReady)){const heroName=heroFacing[facing]||'hero-down',heroRegion=this.productionRegion(heroName),hdHero=this._explorationHero(),region=hdHero?this.hdRegion('exploration-hero'):heroRegion;if(!region)return false;const target=Math.max(92,Math.min(126,ctx.canvas.height*.125)),h=target*depth,w=h*region[2]/region[3],x=worldX*tileSize-camX+tileSize/2-w/2,y=foot-h;ctx.save();ctx.imageSmoothingEnabled=true;const halo=ctx.createRadialGradient(x+w/2,y+h*.58,3,x+w/2,y+h*.58,48);halo.addColorStop(0,'rgba(4,7,5,.58)');halo.addColorStop(.7,'rgba(4,7,5,.22)');halo.addColorStop(1,'rgba(4,7,5,0)');ctx.fillStyle=halo;ctx.fillRect(x-28,y-14,w+56,h+28);ctx.globalAlpha=.7;ctx.fillStyle='#020302';ctx.beginPath();ctx.ellipse(x+w/2,foot-2,w*.46,6,0,0,Math.PI*2);ctx.fill();ctx.globalAlpha=1;ctx.filter='contrast(1.16) drop-shadow(-2px -2px 3px rgba(129,205,215,.5)) drop-shadow(3px 1px 4px rgba(241,188,92,.42))';let ok=false;try{if(hdHero){ctx.save();if(facing==='left'||facing==='right'){ctx.translate(x+w/2,0);ctx.scale(facing==='left'?-1:1,1);ctx.translate(-(x+w/2),0);}ctx.drawImage(hdHero,x,y,w,h);ctx.restore();ok=true;}}catch(e){ok=false;}if(!ok)ok=this.drawProductionRegion(ctx,heroName,x,y,w,h,true);ctx.restore();return ok;}
+      if(kind!=='player'&&kind!=='npc'){const fox=kind==='swiftfang_fox',enemyName=this.enemyRegionFor(kind),enemyRegion=fox?this.guideRegion('swiftfang-fox'):enemyName&&this.productionRegion(enemyName);if(!enemyRegion)return false;const h=(fox?58:70)*depth,w=h*enemyRegion[2]/enemyRegion[3],x=worldX*tileSize-camX+tileSize/2-w/2,y=foot-h;ctx.save();ctx.imageSmoothingEnabled=true;ctx.filter='drop-shadow(0 4px 3px rgba(0,0,0,.75))';const ok=fox?this._drawGuideSubject(ctx,'swiftfang-fox',x,y,w,h):this.drawProductionRegion(ctx,enemyName,x,y,w,h,true);ctx.restore();return ok;}
+      if(kind==='player'&&this.actorGuideReady){const region=this.guideRegion('exploration-player'),target=Math.max(92,Math.min(126,ctx.canvas.height*.125)),h=target*depth,w=h*region[2]/region[3],x=worldX*tileSize-camX+tileSize/2-w/2,y=foot-h;ctx.save();ctx.imageSmoothingEnabled=true;ctx.globalAlpha=.65;ctx.fillStyle='#020302';ctx.beginPath();ctx.ellipse(x+w/2,foot-2,w*.38,5,0,0,Math.PI*2);ctx.fill();ctx.globalAlpha=1;ctx.filter='contrast(1.1) drop-shadow(0 4px 4px rgba(0,0,0,.72))';if(facing==='left'||facing==='right'){ctx.translate(x+w/2,0);ctx.scale(facing==='left'?-1:1,1);ctx.translate(-(x+w/2),0);}const ok=this._drawGuideSubject(ctx,'exploration-player',x,y,w,h);ctx.restore();return ok;}
       const name=kind==='player'?`player-${facing||'down'}`:'npc',region=this.region(name);if(!region)return false;
       const h=(kind==='player'?72:kind==='npc'?76:68)*depth,w=h*region[2]/region[3],x=worldX*tileSize-camX+tileSize/2-w/2,y=foot-h;
       ctx.save();ctx.imageSmoothingEnabled=true;ctx.globalAlpha=.32;ctx.fillStyle='#000';ctx.beginPath();ctx.ellipse(x+w/2,y+h*.94,w*.34,4,0,0,Math.PI*2);ctx.fill();ctx.globalAlpha=1;this.drawRegion(ctx,name,x,y,w,h);ctx.restore();return true;

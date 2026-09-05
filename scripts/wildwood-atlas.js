@@ -68,11 +68,11 @@
   // mechanical copy so that the accessible runtime descriptor appears once.
   const hdRegions={
     // A consistent head-and-torso window for both large and thumbnail uses.
-    'class-vanguard':[28,77,145,216],
-    'class-warden':[183,77,137,216],
-    'class-acolyte':[329,77,131,216],
-    'class-rogue':[468,77,131,216],
-    'class-arcanist':[609,77,143,216],
+    'class-vanguard':[27,78,146,224], 'class-vanguard-thumb':[38,85,126,126],
+    'class-warden':[182,78,138,224], 'class-warden-thumb':[188,85,126,126],
+    'class-acolyte':[329,78,131,224], 'class-acolyte-thumb':[332,85,126,126],
+    'class-rogue':[468,78,131,224], 'class-rogue-thumb':[471,85,126,126],
+    'class-arcanist':[609,78,143,224], 'class-arcanist-thumb':[618,85,126,126],
     'nature-valiant':[16,537,236,251],
     'nature-cunning':[259,537,227,251],
     'nature-ruthless':[494,537,226,251],
@@ -82,6 +82,16 @@
   };
   Object.keys(hdRegions).forEach(name=>Object.freeze(hdRegions[name]));
   global.VeilboundHDAtlas=Object.freeze({source:'assets/ui/D195A07F-72C2-4686-8D11-1BF037C4B0BA.png?v=VB_HD_ATLAS_1',width:1024,height:1536,regions:Object.freeze(hdRegions)});
+  // The uploaded crop guide is not rendered as a sheet.  Only the three
+  // approved subjects below are sampled, then silhouette-masked at runtime.
+  const actorGuideRegions={
+    'exploration-player':[99,704,176,302],
+    'battle-player':[469,716,166,289],
+    'swiftfang-fox':[0,1154,389,303]
+  };
+  Object.keys(actorGuideRegions).forEach(name=>Object.freeze(actorGuideRegions[name]));
+  global.VeilboundActorGuideAtlas=Object.freeze({source:'assets/ui/7542C2A9-C9AF-4A4D-AFB2-E3C174213E7D.png?v=VB_ACTOR_GUIDE_1',width:1024,height:1536,regions:Object.freeze(actorGuideRegions)});
+
   // The latest approved composition is used for the three nature cards.  These
   // bounds deliberately stop above the exploration panels and include none of
   // the neighbouring card, footer, or sheet typography.
