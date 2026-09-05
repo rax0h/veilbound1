@@ -45,11 +45,22 @@
     'hero-down':[548,488,45,83],'hero-down-right':[617,488,45,83],'hero-right':[684,488,46,83],
     'hero-up-right':[748,488,46,83],'hero-up':[817,488,45,83],'hero-up-left':[883,488,46,83],
     'hero-left':[949,488,47,83],'hero-down-left':[548,578,45,82],
-    'enemy-shadow-wisp':[7,701,118,198],'enemy-dire-wolf':[127,701,124,198],
-    'enemy-forest-bear':[253,701,126,198],'enemy-rootling':[380,701,122,198],
-    'enemy-bramble-hound':[503,701,122,198],'enemy-spite-sprite':[626,701,121,198],
-    'enemy-moss-crawler':[749,701,144,198],'enemy-hollow-stag':[895,701,122,198]
+    // Stop above the baked names so the runtime label is shown exactly once.
+    'enemy-shadow-wisp':[7,701,118,174],'enemy-dire-wolf':[127,701,124,174],
+    'enemy-forest-bear':[253,701,126,174],'enemy-rootling':[380,701,122,174],
+    'enemy-bramble-hound':[503,701,122,174],'enemy-spite-sprite':[626,701,121,174],
+    'enemy-moss-crawler':[749,701,144,174],'enemy-hollow-stag':[895,701,122,174]
   };
   Object.keys(productionRegions).forEach(name=>Object.freeze(productionRegions[name]));
   global.VeilboundProductionAtlas=Object.freeze({source:'assets/ui/07121B0A-AF40-40BB-A6DC-F80BD9F6EBCE.png?v=VB_PRODUCTION_ATLAS_1',width:1024,height:1536,regions:Object.freeze(productionRegions)});
+  // The latest approved composition is used for the three nature cards.  These
+  // bounds deliberately stop above the exploration panels and include none of
+  // the neighbouring card, footer, or sheet typography.
+  const referenceRegions={
+    'nature-valiant':[572,142,136,355],
+    'nature-cunning':[720,142,139,355],
+    'nature-ruthless':[870,142,140,355]
+  };
+  Object.keys(referenceRegions).forEach(name=>Object.freeze(referenceRegions[name]));
+  global.VeilboundReferenceAtlas=Object.freeze({source:'assets/ui/59F051DB-623E-47A9-ABA1-EB8ED7B1225F.png?v=VB_VISIBILITY_PASS_1',width:1024,height:1536,regions:Object.freeze(referenceRegions)});
 })(window);
